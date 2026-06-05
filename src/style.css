@@ -1,0 +1,83 @@
+/* ============ 全局样式 - 暖咖啡 Espresso 主题 ============ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --font-en: 'Outfit', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-cn: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --bg: #F4EEE6;
+  --surface: #FFFFFF;
+  --surface-2: #FBF7F1;
+  --side-bg: #241B16;
+  --side-fg: #D8C7B8;
+  --side-fg-dim: #8C7868;
+  --side-active-bg: #33271F;
+  --side-active-fg: #F3E9DF;
+  --ink: #2B211C;
+  --ink-2: #7A6A5D;
+  --ink-3: #A8988B;
+  --primary: #A6643C;
+  --primary-weak: #F2E4D8;
+  --primary-ink: #fff;
+  --line: #EBE2D7;
+  --line-strong: #E0D3C5;
+  --ok: #5E8A55;
+  --ok-weak: #E7F0E3;
+  --off: #B0928A;
+  --off-weak: #F0E8E5;
+  --radius: 10px;
+  --radius-sm: 7px;
+  --radius-lg: 14px;
+  --shadow: 0 1px 2px rgba(58,40,28,.05), 0 6px 20px rgba(58,40,28,.06);
+}
+
+body {
+  font-family: var(--font-cn);
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#app {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
+  border: none;
+  min-height: 100vh;
+}
+
+/* Element Plus 主题覆盖 */
+.el-button--primary {
+  --el-button-bg-color: var(--primary);
+  --el-button-border-color: var(--primary);
+  --el-button-hover-bg-color: var(--primary);
+  --el-button-hover-border-color: var(--primary);
+  --el-button-active-bg-color: var(--primary);
+  --el-button-active-border-color: var(--primary);
+}
+
+.el-pagination {
+  --el-pagination-button-color: var(--ink-2);
+  --el-pagination-hover-color: var(--primary);
+}
+
+.el-tag--success {
+  --el-tag-bg-color: var(--ok-weak);
+  --el-tag-text-color: var(--ok);
+  --el-tag-border-color: var(--ok-weak);
+}
+
+.el-tag--info {
+  --el-tag-bg-color: var(--off-weak);
+  --el-tag-text-color: var(--off);
+  --el-tag-border-color: var(--off-weak);
+}
