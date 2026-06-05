@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick, onBeforeUnmount } from 'vue'
 import request from '../api/request.js'
+import * as echarts from 'echarts'
 
 const todayData = ref({
   todayOrders: 0,
@@ -12,6 +13,124 @@ const todayData = ref({
 const trendData = ref([])
 const topData = ref([])
 
+// ECharts 实例引用
+let trendChart = null
+
+/** 渲染趋势图 */
+function renderTrendChart() {
+  const chartDom = document.getElementById('trend-chart')
+  if (!chartDom) return
+
+  if (trendChart) {
+    trendChart.dispose()
+  }
+
+  trendChart = echarts.init(chartDom)
+
+  const dates = trendData.value.map(item => item.date)
+  const amounts = trendData.value.map(item => item.amount)
+  const counts = trendData.value.map(item => item.count)
+
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(255,255,255,0.96)',
+      borderColor: '#EBE2D7',
+      textStyle: { color: '#2B211C', fontSize: 13 },
+      formatter(params) {
+        let html = `<div style="font-weight:600;margin-bottom:4px">${params[0].axisValue}</div>`
+        params.forEach(p => {
+          const marker = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color};margin-right:6px"></span>`
+          const val = p.seriesName === '营业额'
+            ? `¥${Number(p.value).toFixed(2)}`
+            : `${p.value} 单`
+          html += `<div style="margin:2px 0">${marker}${p.seriesName}：${val}</div>`
+        })
+        return html
+      }
+    },
+    legend: {
+      data: ['营业额', '订单数'],
+      right: 20,
+      top: 0,
+      textStyle: { color: '#7A6A5D', fontSize: 13 }
+    },
+    grid: {
+      left: 20,
+      right: 20,
+      bottom: 16,
+      top: 40,
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: dates,
+      axisLine: { lineStyle: { color: '#EBE2D7' } },
+      axisLabel: { color: '#A8988B', fontSize: 12 },
+      axisTick: { show: false }
+    },
+    yAxis: [
+      {
+        type: 'value',
+        name: '营业额(元)',
+        nameTextStyle: { color: '#A8988B', fontSize: 12 },
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: { lineStyle: { color: '#EBE2D7', type: 'dashed' } },
+        axisLabel: { color: '#A8988B', fontSize: 12 }
+      },
+      {
+        type: 'value',
+        name: '订单数(单)',
+        nameTextStyle: { color: '#A8988B', fontSize: 12 },
+        axisLine: { show: false },
+        axisTick: { show: false },
+        splitLine: { show: false },
+        axisLabel: { color: '#A8988B', fontSize: 12 }
+      }
+    ],
+    series: [
+      {
+        name: '营业额',
+        type: 'line',
+        data: amounts,
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 7,
+        lineStyle: { width: 2.5, color: '#A6643C' },
+        itemStyle: { color: '#A6643C', borderWidth: 2, borderColor: '#fff' },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(166,100,60,0.25)' },
+            { offset: 1, color: 'rgba(166,100,60,0.02)' }
+          ])
+        }
+      },
+      {
+        name: '订单数',
+        type: 'bar',
+        yAxisIndex: 1,
+        data: counts,
+        barWidth: 24,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(94,138,85,0.6)' },
+            { offset: 1, color: 'rgba(94,138,85,0.15)' }
+          ]),
+          borderRadius: [4, 4, 0, 0]
+        }
+      }
+    ]
+  }
+
+  trendChart.setOption(option)
+}
+
+/** 窗口 resize 处理 */
+function handleResize() {
+  trendChart && trendChart.resize()
+}
+
 onMounted(async () => {
   try {
     const [todayRes, trendRes, topRes] = await Promise.all([
@@ -19,11 +138,23 @@ onMounted(async () => {
       request.get('/dashboard/trend'),
       request.get('/dashboard/top')
     ])
-    todayData.value = todayRes.data
-    trendData.value = trendRes.data
-    topData.value = topRes.data
+    todayData.value = todayRes.data || todayData.value
+    trendData.value = trendRes.data || []
+    topData.value = topRes.data || []
   } catch (e) {
     // 接口未实现时使用占位数据
+  }
+
+  await nextTick()
+  renderTrendChart()
+  window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+  if (trendChart) {
+    trendChart.dispose()
+    trendChart = null
   }
 })
 </script>
@@ -55,7 +186,7 @@ onMounted(async () => {
         </div>
         <div class="stat-info">
           <span class="stat-label">今日营收</span>
-          <span class="stat-value">&yen;{{ todayData.todayAmount?.toFixed(2) }}</span>
+          <span class="stat-value">&yen;{{ Number(todayData.todayAmount || 0).toFixed(2) }}</span>
         </div>
       </div>
 
@@ -64,7 +195,7 @@ onMounted(async () => {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
         <div class="stat-info">
-          <span class="stat-label">待处理</span>
+          <span class="stat-label">待接单</span>
           <span class="stat-value">{{ todayData.pendingOrders }}</span>
         </div>
       </div>
@@ -84,16 +215,14 @@ onMounted(async () => {
     <div class="chart-row">
       <div class="chart-card">
         <h3>近7日销售趋势</h3>
-        <div class="chart-placeholder">
-          <p>图表区域（需集成 ECharts）</p>
-        </div>
+        <div id="trend-chart" class="chart-container"></div>
       </div>
 
       <div class="chart-card">
         <h3>热销 TOP5</h3>
         <div class="top-list">
           <div v-for="(item, index) in topData" :key="index" class="top-item">
-            <span class="top-rank">{{ index + 1 }}</span>
+            <span class="top-rank" :class="{ gold: index === 0, silver: index === 1, bronze: index === 2 }">{{ index + 1 }}</span>
             <span class="top-name">{{ item.drinkName }}</span>
             <span class="top-count">{{ item.count }} 杯</span>
           </div>
@@ -139,6 +268,12 @@ onMounted(async () => {
   align-items: center;
   gap: 16px;
   box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(58,40,28,.1);
 }
 
 .stat-icon {
@@ -147,6 +282,7 @@ onMounted(async () => {
   border-radius: 12px;
   display: grid;
   place-items: center;
+  flex-shrink: 0;
 }
 
 .stat-icon svg {
@@ -211,13 +347,9 @@ onMounted(async () => {
   margin-bottom: 16px;
 }
 
-.chart-placeholder {
-  height: 240px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ink-3);
-  font-size: 14px;
+.chart-container {
+  height: 300px;
+  width: 100%;
 }
 
 .top-list {
@@ -248,6 +380,22 @@ onMounted(async () => {
   place-items: center;
   font-weight: 600;
   font-size: 13px;
+  flex-shrink: 0;
+}
+
+.top-rank.gold {
+  background: #FFF7E6;
+  color: #D48806;
+}
+
+.top-rank.silver {
+  background: #F0F0F0;
+  color: #8C8C8C;
+}
+
+.top-rank.bronze {
+  background: #FFF1E8;
+  color: #D46B08;
 }
 
 .top-name {

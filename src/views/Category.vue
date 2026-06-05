@@ -1,10 +1,12 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '../api/request.js'
 
 const loading = ref(false)
 const tableData = ref([])
+const searchText = ref('')
+const statusFilter = ref('')
 const dialogVisible = ref(false)
 const dialogTitle = ref('新增分类')
 const form = ref({ name: '', icon: '', sort: 0, status: 1 })
@@ -13,6 +15,14 @@ const formRef = ref(null)
 const rules = {
   name: [{ required: true, message: '请输入分类名称', trigger: 'blur' }]
 }
+
+const filteredData = computed(() => {
+  return tableData.value.filter(item => {
+    const matchName = !searchText.value || item.name.includes(searchText.value)
+    const matchStatus = statusFilter.value === '' || item.status === statusFilter.value
+    return matchName && matchStatus
+  })
+})
 
 onMounted(() => { loadData() })
 
@@ -79,8 +89,16 @@ async function handleDelete(row) {
       <el-button type="primary" @click="handleAdd">新增分类</el-button>
     </div>
 
+    <div class="search-bar">
+      <el-input v-model="searchText" placeholder="搜索分类名称" clearable style="width: 220px" />
+      <el-select v-model="statusFilter" placeholder="状态筛选" clearable style="width: 140px">
+        <el-option label="启用" :value="1" />
+        <el-option label="停用" :value="0" />
+      </el-select>
+    </div>
+
     <div class="table-card">
-      <el-table :data="tableData" v-loading="loading">
+      <el-table :data="filteredData" v-loading="loading">
         <el-table-column label="分类名称" prop="name" min-width="150" />
         <el-table-column label="图标" prop="icon" width="100" />
         <el-table-column label="排序" prop="sort" width="100" />
@@ -135,5 +153,6 @@ async function handleDelete(row) {
 .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; }
 .page-header h1 { font-size: 21px; font-weight: 600; }
 .page-header p { font-size: 13px; color: var(--ink-3); margin-top: 5px; }
+.search-bar { display: flex; gap: 12px; margin-bottom: 16px; }
 .table-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
 </style>
