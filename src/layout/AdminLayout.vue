@@ -112,8 +112,7 @@ function handleLogout() {
             </span>
             <span v-show="!isCollapse" class="menu-text">{{ item.title }}</span>
             <span v-if="item.path === '/order' && pendingCount > 0" class="menu-badge">
-              <span class="menu-badge-dot"></span>
-              <span v-show="!isCollapse" class="menu-badge-count">{{ pendingCount }}</span>
+              <span class="menu-badge-count">{{ pendingCount }}</span>
             </span>
           </div>
         </div>
@@ -595,17 +594,6 @@ function handleLogout() {
 /* 菜单 badge */
 .menu-badge {
   margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.menu-badge-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--el-color-danger);
-  animation: badge-pulse 1.5s ease-in-out infinite;
 }
 
 .menu-badge-count {
@@ -617,8 +605,4 @@ function handleLogout() {
   border-radius: 999px;
 }
 
-@keyframes badge-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
 </style>
