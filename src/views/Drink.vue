@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Delete } from '@element-plus/icons-vue'
 import request from '../utils/request.js'
 import ImageUpload from '../components/ImageUpload.vue'
 import { formatTime } from '../utils/format.js'
@@ -15,7 +16,7 @@ const selectedIds = ref([])
 // 抽屉相关
 const drawerVisible = ref(false)
 const drawerTitle = ref('新增饮品')
-const form = ref({ name: '', categoryId: null, price: null, description: '', flavors: [], image: '' })
+const form = ref({ name: '', categoryId: null, price: null, description: '', flavors: [], image: '', status: 1 })
 const formRef = ref(null)
 
 const rules = {
@@ -50,7 +51,7 @@ function handleSelectionChange(rows) { selectedIds.value = rows.map(r => r.id) }
 
 function handleAdd() {
   drawerTitle.value = '新增饮品'
-  form.value = { name: '', categoryId: null, price: null, description: '', flavors: [], image: '' }
+  form.value = { name: '', categoryId: null, price: null, description: '', flavors: [], image: '', status: 1 }
   drawerVisible.value = true
 }
 
@@ -63,7 +64,8 @@ function handleEdit(row) {
     price: row.price,
     description: row.description,
     flavors: row.flavors ? row.flavors.map(f => ({ ...f })) : [],
-    image: row.image || ''
+    image: row.image || '',
+    status: row.status
   }
   drawerVisible.value = true
 }
@@ -89,6 +91,7 @@ async function handleSubmit() {
     formData.append('categoryId', form.value.categoryId)
     formData.append('price', form.value.price)
     formData.append('image', form.value.image)
+    formData.append('status', form.value.status)
     if (form.value.description) formData.append('description', form.value.description)
     if (form.value.flavors.length > 0) {
       formData.append('flavors', JSON.stringify(form.value.flavors.filter(f => f.name && f.value)))
@@ -229,33 +232,47 @@ async function handleBatchDelete() {
     </div>
 
     <!-- 新增/编辑抽屉 -->
-    <el-drawer v-model="drawerVisible" :title="drawerTitle" size="540px">
+    <el-drawer v-model="drawerVisible" :title="drawerTitle" size="540px" class="drink-drawer">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="饮品名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入饮品名称" />
-        </el-form-item>
-        <el-form-item label="所属分类" prop="categoryId">
-          <el-select v-model="form.categoryId" placeholder="请选择分类" style="width: 100%">
-            <el-option v-for="cat in categoryList" :key="cat.id" :label="cat.name" :value="cat.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="价格" prop="price">
-          <el-input-number v-model="form.price" :min="0" :precision="2" :step="1" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="饮品图片">
+        <el-form-item label="饮品图片" class="image-upload-item">
           <ImageUpload v-model="form.image" />
         </el-form-item>
+        <div class="form-two-col">
+          <el-form-item label="饮品名称" prop="name">
+            <el-input v-model="form.name" placeholder="请输入饮品名称" />
+          </el-form-item>
+          <el-form-item label="所属分类" prop="categoryId">
+            <el-select v-model="form.categoryId" placeholder="请选择分类" style="width: 100%">
+              <el-option v-for="cat in categoryList" :key="cat.id" :label="cat.name" :value="cat.id" />
+            </el-select>
+          </el-form-item>
+        </div>
+        <div class="form-two-col">
+          <el-form-item label="价格" prop="price">
+            <el-input-number v-model="form.price" :min="0" :precision="2" :step="1" style="width: 100%" />
+          </el-form-item>
+          <el-form-item label="状态">
+            <div class="switch-field">
+              <div class="txt">起售</div>
+              <span class="toggle" :class="{ on: form.status === 1 }" @click="form.status = form.status === 1 ? 0 : 1"></span>
+            </div>
+          </el-form-item>
+        </div>
         <el-form-item label="描述">
           <el-input v-model="form.description" type="textarea" :rows="2" placeholder="饮品描述" />
         </el-form-item>
-        <el-form-item label="口味规格">
-          <div style="width: 100%">
-            <div v-for="(flavor, index) in form.flavors" :key="index" style="display: flex; gap: 8px; margin-bottom: 8px">
-              <el-input v-model="flavor.name" placeholder="口味名称（如甜度）" style="flex: 1" />
-              <el-input v-model="flavor.value" placeholder="选项（逗号分隔）" style="flex: 2" />
-              <el-button type="danger" link @click="removeFlavor(index)">删除</el-button>
+        <el-form-item label="口味规格" class="flavor-item">
+          <div class="flavor-list">
+            <div v-for="(flavor, index) in form.flavors" :key="index" class="flavor-row">
+              <el-input v-model="flavor.name" placeholder="口味名" class="flavor-name-input" />
+              <el-input v-model="flavor.value" placeholder="选项（逗号分隔）" class="flavor-value-input" />
+              <el-button type="danger" link @click="removeFlavor(index)" class="flavor-del-btn">
+                <el-icon><Delete /></el-icon>
+              </el-button>
             </div>
-            <el-button type="primary" link @click="addFlavor">+ 添加口味</el-button>
+            <el-button type="primary" link @click="addFlavor" class="add-flavor-btn">
+              + 添加口味规格
+            </el-button>
           </div>
         </el-form-item>
       </el-form>
@@ -304,4 +321,261 @@ async function handleBatchDelete() {
 .toggle.on::after { left: 20px; }
 .st-wrap { display: inline-flex; align-items: center; gap: 9px; }
 .st-wrap .txt { font-size: 13px; color: var(--ink-2); }
+
+/* ========== 抽屉样式覆盖，匹配原型 ========== */
+:deep(.el-drawer) {
+  background: var(--bg) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+:deep(.el-drawer__header) {
+  padding: 22px 26px !important;
+  margin-bottom: 0 !important;
+  background: var(--surface) !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+:deep(.el-drawer__title) {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--ink) !important;
+}
+:deep(.el-drawer__body) {
+  padding: 24px 26px !important;
+  background: var(--bg) !important;
+}
+:deep(.el-drawer__footer) {
+  padding: 16px 26px !important;
+  background: var(--surface) !important;
+  border-top: 1px solid var(--line) !important;
+}
+
+/* 表单项间距 */
+:deep(.el-form-item) {
+  margin-bottom: 20px !important;
+}
+:deep(.el-form-item__label) {
+  font-size: 13px !important;
+  color: var(--ink-2) !important;
+  font-weight: 500 !important;
+  line-height: 40px !important;
+}
+
+/* 输入框、选择器、文本域统一样式 */
+:deep(.el-input__wrapper),
+:deep(.el-select .el-input__wrapper),
+:deep(.el-textarea__inner) {
+  background: var(--surface) !important;
+  border: 1px solid var(--line-strong) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+  padding: 11px 14px !important;
+  font-family: var(--font-cn) !important;
+  font-size: 14px !important;
+  color: var(--ink) !important;
+  transition: all 0.15s !important;
+}
+:deep(.el-input__wrapper:hover),
+:deep(.el-select .el-input__wrapper:hover),
+:deep(.el-textarea__inner:hover) {
+  border-color: var(--primary) !important;
+}
+:deep(.el-input__wrapper.is-focus),
+:deep(.el-select .el-input__wrapper.is-focus),
+:deep(.el-textarea__inner:focus) {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--primary-weak) !important;
+}
+:deep(.el-input__inner) {
+  font-family: var(--font-cn) !important;
+  font-size: 14px !important;
+  color: var(--ink) !important;
+}
+:deep(.el-input__inner::placeholder) {
+  color: var(--ink-3) !important;
+}
+:deep(.el-textarea__inner) {
+  resize: vertical !important;
+  min-height: 74px !important;
+}
+
+/* 数字输入框 */
+:deep(.el-input-number .el-input__wrapper) {
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+}
+:deep(.el-input-number .el-input-number__decrease),
+:deep(.el-input-number .el-input-number__increase) {
+  background: transparent !important;
+  border: none !important;
+  color: var(--ink-3) !important;
+}
+
+/* 两列布局 */
+.form-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* 状态开关卡片 */
+.switch-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 13px 16px;
+}
+.switch-field .txt {
+  font-size: 13.5px;
+  color: var(--ink);
+  flex: 1;
+}
+.switch-field .txt small {
+  display: block;
+  color: var(--ink-3);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* 自定义 toggle（与原型完全一致） */
+.toggle {
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--line-strong);
+  position: relative;
+  cursor: pointer;
+  transition: .18s;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: auto;
+}
+.toggle.on { background: var(--ok); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: .18s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.toggle.on::after { left: 20px; }
+
+/* 图片上传项 */
+.image-upload-item {
+  margin-bottom: 20px !important;
+}
+
+/* 按钮样式匹配原型 */
+:deep(.el-button--primary) {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #fff !important;
+  font-size: 13.5px !important;
+  padding: 9px 16px !important;
+  border-radius: var(--radius-sm) !important;
+}
+:deep(.el-button--primary:hover) {
+  background: var(--primary-2) !important;
+  border-color: var(--primary-2) !important;
+}
+:deep(.el-button--default) {
+  background: var(--surface) !important;
+  border: 1px solid var(--line-strong) !important;
+  color: var(--ink-2) !important;
+  font-size: 13.5px !important;
+  padding: 9px 16px !important;
+  border-radius: var(--radius-sm) !important;
+}
+:deep(.el-button--default:hover) {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+:deep(.el-button--danger.is-link) {
+  color: var(--off) !important;
+  font-size: 13px !important;
+}
+:deep(.el-button--primary.is-link) {
+  color: var(--primary) !important;
+  font-size: 13.5px !important;
+}
+
+/* 关闭按钮 */
+:deep(.el-drawer__close-btn) {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+}
+:deep(.el-drawer__close-btn:hover) {
+  background: var(--surface-2) !important;
+}
+:deep(.el-drawer__close-btn .el-dialog__close) {
+  font-size: 18px !important;
+  color: var(--ink-2) !important;
+}
+
+/* 口味规格区域 */
+.flavor-item {
+  margin-bottom: 0 !important;
+}
+.flavor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+.flavor-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.flavor-row :deep(.el-input__wrapper) {
+  height: 40px !important;
+}
+.flavor-name-input {
+  width: 120px !important;
+  flex-shrink: 0;
+}
+.flavor-value-input {
+  flex: 1;
+}
+.flavor-del-btn {
+  width: 38px !important;
+  height: 40px !important;
+  border-radius: var(--radius-sm) !important;
+  border: 1px solid var(--line-strong) !important;
+  background: var(--surface) !important;
+  color: var(--off) !important;
+  display: grid !important;
+  place-items: center !important;
+  flex-shrink: 0;
+  padding: 0 !important;
+}
+.flavor-del-btn:hover {
+  background: var(--off-weak) !important;
+  border-color: var(--off) !important;
+}
+.add-flavor-btn {
+  width: 100% !important;
+  border: 1.5px dashed var(--line-strong) !important;
+  background: transparent !important;
+  color: var(--primary) !important;
+  border-radius: var(--radius) !important;
+  padding: 10px !important;
+  font-size: 13.5px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+}
+.add-flavor-btn:hover {
+  background: var(--primary-weak) !important;
+}
 </style>

@@ -122,22 +122,32 @@ export default { components: { Plus, Close, Loading } }
 
 <style scoped>
 .image-upload-wrapper {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 6px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
 }
 .upload-box {
-  border: 1px dashed var(--line-strong, #dcdfe6);
-  border-radius: 6px;
+  width: 120px;
+  height: 120px;
+  border: 1.5px dashed var(--line-strong, #dcdfe6);
+  border-radius: var(--radius, 10px);
+  background: var(--surface, #fff);
   cursor: pointer;
   overflow: hidden;
   position: relative;
-  display: grid;
-  place-items: center;
-  transition: border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--ink-3, #a8988b);
+  transition: all 0.15s;
+  flex-shrink: 0;
 }
 .upload-box:hover {
-  border-color: var(--primary, #409eff);
+  border-color: var(--primary, #a6643c);
+  color: var(--primary, #a6643c);
+  background: var(--primary-weak, #f2e4d8);
 }
 .preview-img {
   width: 100%;
@@ -149,7 +159,6 @@ export default { components: { Plus, Close, Loading } }
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  color: #8c939d;
   font-size: 12px;
 }
 .upload-loading {
@@ -158,26 +167,28 @@ export default { components: { Plus, Close, Loading } }
   background: rgba(255, 255, 255, 0.7);
   display: grid;
   place-items: center;
-  color: var(--primary, #409eff);
+  color: var(--primary, #a6643c);
 }
 .remove-btn {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 20px;
-  height: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  background: rgba(40, 28, 20, 0.6);
+  border-radius: 6px;
   display: grid;
   place-items: center;
   color: #fff;
   font-size: 12px;
 }
 .remove-btn:hover {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(40, 28, 20, 0.8);
 }
 .upload-tip {
-  font-size: 12px;
-  color: #8c939d;
+  font-size: 12.5px;
+  color: var(--ink-3, #a8988b);
+  line-height: 1.7;
+  padding-top: 4px;
 }
 </style>
