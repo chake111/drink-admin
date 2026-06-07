@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import draggable from 'vuedraggable'
 import request from '../utils/request.js'
+import { updateCategorySort } from '../api/category.js'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -32,6 +34,7 @@ async function loadData() {
   loading.value = true
   try {
     const res = await request.get('/category/list')
+    console.log('[loadData] 返回数据 =', res.data)
     tableData.value = res.data
   } catch (e) {} finally { loading.value = false }
 }
@@ -84,6 +87,21 @@ async function handleDelete(row) {
     loadData()
   } catch (e) {}
 }
+
+async function handleDragEnd() {
+  const ids = tableData.value.map(c => c.id)
+  console.log('[sort] 发送排序请求 ids =', ids)
+  try {
+    const res = await updateCategorySort(ids)
+    console.log('[sort] 响应 =', res)
+    ElMessage.success('排序已更新')
+    loadData()
+  } catch (e) {
+    console.error('[sort] 失败 =', e)
+    ElMessage.error('排序更新失败')
+    loadData()
+  }
+}
 </script>
 
 <template>
@@ -96,30 +114,49 @@ async function handleDelete(row) {
       <el-button type="primary" @click="handleAdd">新增分类</el-button>
     </div>
 
-    <!-- 卡片网格 -->
-    <div class="cat-grid" v-loading="loading">
-      <div v-for="cat in tableData" :key="cat.id" class="cat-card">
-        <div class="cat-icon">
-          <svg v-if="iconMap[cat.icon]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" v-html="iconMap[cat.icon]"></svg>
-          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-        </div>
-        <div class="cat-mid">
-          <div class="cat-name">{{ cat.name }}</div>
-          <div class="cat-meta">{{ cat.drinkCount ?? 0 }} 款饮品 · {{ cat.status === 1 ? '已启用' : '已停用' }}</div>
-        </div>
-        <div class="cat-actions">
-          <span class="toggle" :class="{ on: cat.status === 1 }" @click="handleStatusChange(cat)"></span>
-          <div class="cat-ops">
-            <span class="op-text" @click="handleEdit(cat)">编辑</span>
-            <span class="op-sep"></span>
-            <span class="op-text del" @click="handleDelete(cat)">删除</span>
+    <!-- 卡片网格（可拖拽排序） -->
+    <draggable
+      v-model="tableData"
+      item-key="id"
+      handle=".drag-handle"
+      animation="200"
+      ghost-class="cat-ghost"
+      chosen-class="cat-chosen"
+      drag-class="cat-drag"
+      :disabled="loading"
+      v-loading="loading"
+      class="cat-grid"
+      @end="handleDragEnd"
+    >
+      <template #item="{ element: cat }">
+        <div class="cat-card">
+          <div class="drag-handle" title="拖拽排序">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg>
+          </div>
+          <div class="cat-icon">
+            <svg v-if="iconMap[cat.icon]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" v-html="iconMap[cat.icon]"></svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </div>
+          <div class="cat-mid">
+            <div class="cat-name">{{ cat.name }}</div>
+            <div class="cat-meta">{{ cat.drinkCount ?? 0 }} 款饮品 · {{ cat.status === 1 ? '已启用' : '已停用' }}</div>
+          </div>
+          <div class="cat-actions">
+            <span class="toggle" :class="{ on: cat.status === 1 }" @click="handleStatusChange(cat)"></span>
+            <div class="cat-ops">
+              <span class="op-text" @click="handleEdit(cat)">编辑</span>
+              <span class="op-sep"></span>
+              <span class="op-text del" @click="handleDelete(cat)">删除</span>
+            </div>
           </div>
         </div>
-      </div>
-      <div v-if="!loading && tableData.length === 0" class="cat-empty">
-        暂无分类数据
-      </div>
-    </div>
+      </template>
+      <template #footer>
+        <div v-if="!loading && tableData.length === 0" class="cat-empty">
+          暂无分类数据
+        </div>
+      </template>
+    </draggable>
 
     <p class="cat-foot" v-if="tableData.length > 0">共 {{ tableData.length }} 个分类</p>
 
@@ -182,11 +219,54 @@ async function handleDelete(row) {
   align-items: center;
   gap: 14px;
   transition: all 0.15s;
+  user-select: none;
 }
 
 .cat-card:hover {
   border-color: var(--line-strong);
   transform: translateY(-2px);
+}
+
+/* 拖拽手柄 */
+.drag-handle {
+  cursor: grab;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.drag-handle:hover {
+  color: var(--primary);
+  background: var(--primary-weak);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* 拖拽占位符（ghost） */
+.cat-ghost {
+  opacity: 0.4;
+  border: 2px dashed var(--primary) !important;
+  background: var(--primary-weak) !important;
+  box-shadow: none !important;
+}
+
+/* 被选中时 */
+.cat-chosen {
+  box-shadow: var(--shadow-lg) !important;
+  transform: scale(1.02);
+}
+
+/* 拖拽中 */
+.cat-drag {
+  opacity: 0.9;
+  transform: rotate(1.5deg);
 }
 
 .cat-icon {

@@ -19,3 +19,7 @@ export function deleteCategory(id) {
 export function updateCategoryStatus(id, status) {
   return request({ url: `/category/status/${status}`, method: 'post', params: { id } })
 }
+
+export function updateCategorySort(ids) {
+  return request({ url: '/category/sort', method: 'put', data: { ids } })
+}
