@@ -191,10 +191,10 @@ onBeforeUnmount(() => {
         <div class="stat-info">
           <span class="stat-label">今日订单</span>
           <span class="stat-value">{{ todayData.todayOrders }}</span>
-          <span class="stat-change" :class="{ up: todayData.ordersChange > 0, down: todayData.ordersChange < 0 }" v-if="todayData.ordersChange !== 0">
+          <span class="stat-change" :class="{ up: todayData.ordersChange > 0, down: todayData.ordersChange < 0 }" v-if="todayData.ordersChange != null && todayData.ordersChange !== 0">
             <svg v-if="todayData.ordersChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
             <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-            {{ Math.abs(todayData.ordersChange) }}%
+            {{ Math.abs(todayData.ordersChange ?? 0) }}%
           </span>
         </div>
       </div>
@@ -206,10 +206,10 @@ onBeforeUnmount(() => {
         <div class="stat-info">
           <span class="stat-label">今日营收</span>
           <span class="stat-value">&yen;{{ Number(todayData.todayAmount || 0).toFixed(2) }}</span>
-          <span class="stat-change" :class="{ up: todayData.amountChange > 0, down: todayData.amountChange < 0 }" v-if="todayData.amountChange !== 0">
+          <span class="stat-change" :class="{ up: todayData.amountChange > 0, down: todayData.amountChange < 0 }" v-if="todayData.amountChange != null && todayData.amountChange !== 0">
             <svg v-if="todayData.amountChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
             <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-            {{ Math.abs(todayData.amountChange) }}%
+            {{ Math.abs(todayData.amountChange ?? 0) }}%
           </span>
         </div>
       </div>
@@ -221,10 +221,10 @@ onBeforeUnmount(() => {
         <div class="stat-info">
           <span class="stat-label">待接单</span>
           <span class="stat-value">{{ todayData.pendingOrders }}</span>
-          <span class="stat-change" :class="{ up: todayData.pendingChange > 0, down: todayData.pendingChange < 0 }" v-if="todayData.pendingChange !== 0">
+          <span class="stat-change" :class="{ up: todayData.pendingChange > 0, down: todayData.pendingChange < 0 }" v-if="todayData.pendingChange != null && todayData.pendingChange !== 0">
             <svg v-if="todayData.pendingChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
             <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-            {{ Math.abs(todayData.pendingChange) }}%
+            {{ Math.abs(todayData.pendingChange ?? 0) }}%
           </span>
         </div>
       </div>
@@ -236,10 +236,10 @@ onBeforeUnmount(() => {
         <div class="stat-info">
           <span class="stat-label">已完成</span>
           <span class="stat-value">{{ todayData.completedOrders }}</span>
-          <span class="stat-change" :class="{ up: todayData.completedChange > 0, down: todayData.completedChange < 0 }" v-if="todayData.completedChange !== 0">
+          <span class="stat-change" :class="{ up: todayData.completedChange > 0, down: todayData.completedChange < 0 }" v-if="todayData.completedChange != null && todayData.completedChange !== 0">
             <svg v-if="todayData.completedChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
             <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-            {{ Math.abs(todayData.completedChange) }}%
+            {{ Math.abs(todayData.completedChange ?? 0) }}%
           </span>
         </div>
       </div>
