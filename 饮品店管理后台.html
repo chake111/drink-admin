@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>饮品店管理后台 · 茶咖优选</title>
+<!--
+  ============================================================
+  饮品店订购系统 · 管理后台 高保真交互原型（定调正式版）
+  定调：版A 暖咖啡（深色侧栏 + 焦糖棕） + 版B 状态开关 + 真实图片占位框
+  覆盖：登录页 → 饮品管理列表 → 新增/编辑饮品抽屉(口味动态增删 + 图片上传)
+        饮品分类 / 订单管理 / 员工管理
+  ============================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --font-en:'Outfit','PingFang SC','Microsoft YaHei',sans-serif;
+  --font-cn:'PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+  --bg:#F4EEE6; --surface:#FFFFFF; --surface-2:#FBF7F1;
+  --side-bg:#241B16; --side-fg:#D8C7B8; --side-fg-dim:#8C7868; --side-active-bg:#33271F; --side-active-fg:#F3E9DF;
+  --ink:#2B211C; --ink-2:#7A6A5D; --ink-3:#A8988B;
+  --primary:#A6643C; --primary-2:#8A5230; --primary-weak:#F2E4D8; --primary-ink:#fff;
+  --line:#EBE2D7; --line-strong:#E0D3C5;
+  --ok:#5E8A55; --ok-weak:#E7F0E3; --off:#B0928A; --off-weak:#F0E8E5;
+  --warn:#C68A2E; --warn-weak:#F7EDD9;
+  --radius:10px; --radius-sm:7px; --radius-lg:14px;
+  --shadow:0 1px 2px rgba(58,40,28,.05),0 6px 20px rgba(58,40,28,.06);
+  --shadow-lg:0 12px 40px rgba(58,40,28,.16);
+}
+body{font-family:var(--font-cn);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
+.en{font-family:var(--font-en)} .mono{font-family:var(--font-mono)}
+button{font-family:var(--font-cn)}
+.hide{display:none!important}
+
+/* ========== 登录页 ========== */
+.login{position:fixed;inset:0;display:flex;background:var(--bg);z-index:100}
+.login-art{
+  width:46%;background:var(--side-bg);color:#F3E9DF;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:space-between;padding:54px 56px;
+}
+.login-art::after{content:'';position:absolute;right:-120px;bottom:-120px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(166,100,60,.45),transparent 68%)}
+.login-art .lbrand{display:flex;align-items:center;gap:13px;position:relative;z-index:2}
+.login-art .lbrand .lg{width:46px;height:46px;border-radius:13px;background:var(--primary);display:grid;place-items:center}
+.login-art .lbrand .lg svg{width:26px;height:26px}
+.login-art .lbrand b{font-family:var(--font-en);font-size:21px;letter-spacing:.01em}
+.login-art .pitch{position:relative;z-index:2}
+.login-art .pitch h2{font-size:34px;font-weight:700;line-height:1.35;letter-spacing:.01em}
+.login-art .pitch p{color:#C2AD9C;font-size:15px;margin-top:16px;max-width:340px;line-height:1.7}
+.login-art .foot{position:relative;z-index:2;color:#8C7868;font-size:12.5px}
+.login-form{flex:1;display:flex;align-items:center;justify-content:center;padding:40px}
+.login-card{width:100%;max-width:360px}
+.login-card h1{font-size:25px;font-weight:600}
+.login-card .sub{color:var(--ink-3);font-size:14px;margin-top:8px;margin-bottom:34px}
+.lf{margin-bottom:18px}
+.lf label{display:block;font-size:13px;color:var(--ink-2);margin-bottom:8px;font-weight:500}
+.lf .inp{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius);padding:12px 14px;transition:.15s}
+.lf .inp:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-weak)}
+.lf .inp svg{width:17px;height:17px;color:var(--ink-3)}
+.lf .inp input{border:0;outline:0;background:transparent;font-family:var(--font-cn);font-size:14px;color:var(--ink);width:100%}
+.lf .inp .eye{cursor:pointer}
+.lrow{display:flex;align-items:center;justify-content:space-between;font-size:13px;margin-bottom:26px}
+.lrow label{display:flex;align-items:center;gap:7px;color:var(--ink-2);cursor:pointer}
+.lrow a{color:var(--primary);text-decoration:none}
+.lbtn{width:100%;background:var(--primary);color:#fff;border:0;border-radius:var(--radius);padding:13px;font-size:15px;font-weight:600;cursor:pointer;transition:.15s}
+.lbtn:hover{background:var(--primary-2)}
+.ltip{margin-top:18px;text-align:center;font-size:12px;color:var(--ink-3)}
+
+/* ========== 后台骨架 ========== */
+.app{display:flex;height:100vh}
+.sidebar{width:228px;flex-shrink:0;background:var(--side-bg);color:var(--side-fg);display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:11px;padding:22px 22px 18px}
+.brand .logo{width:38px;height:38px;border-radius:11px;background:var(--primary);color:#fff;display:grid;place-items:center;flex-shrink:0}
+.brand .logo svg{width:22px;height:22px}
+.brand .name{font-family:var(--font-en);font-weight:700;font-size:17px;color:var(--side-active-fg)}
+.brand .name small{display:block;font-family:var(--font-cn);font-weight:400;font-size:11px;color:var(--side-fg-dim);margin-top:1px}
+.nav{padding:8px 14px;flex:1;overflow-y:auto}
+.nav .grp{font-size:11px;color:var(--side-fg-dim);padding:14px 12px 7px;letter-spacing:.08em}
+.nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--radius-sm);color:var(--side-fg);text-decoration:none;font-size:13.5px;margin-bottom:2px;transition:.15s;cursor:pointer}
+.nav a svg{width:18px;height:18px;opacity:.85;flex-shrink:0}
+.nav a:hover{background:var(--side-active-bg);color:var(--side-active-fg)}
+.nav a.active{background:var(--side-active-bg);color:var(--side-active-fg);font-weight:600}
+.nav a .badge{margin-left:auto;font-family:var(--font-en);font-size:11px;background:var(--primary);color:#fff;padding:1px 7px;border-radius:999px}
+.side-foot{padding:14px 20px;border-top:1px solid rgba(255,255,255,.07);font-size:12px;color:var(--side-fg-dim);display:flex;align-items:center;gap:9px}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:62px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 26px;gap:16px}
+.crumb{font-size:13px;color:var(--ink-3)} .crumb b{color:var(--ink);font-weight:600}
+.topbar .search{margin-left:14px;display:flex;align-items:center;gap:8px;width:240px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:8px 14px;color:var(--ink-3)}
+.topbar .search svg{width:15px;height:15px}
+.topbar .search input{border:0;background:transparent;outline:0;font-family:var(--font-cn);font-size:13px;color:var(--ink);width:100%}
+.topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.icon-btn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--ink-2);cursor:pointer;position:relative}
+.icon-btn:hover{background:var(--surface-2)} .icon-btn svg{width:18px;height:18px}
+.icon-btn .ping{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--primary);border:2px solid var(--surface)}
+.user{display:flex;align-items:center;gap:10px;cursor:pointer;padding-left:16px;border-left:1px solid var(--line)}
+.user .av{width:34px;height:34px;border-radius:50%;background:var(--primary-weak);color:var(--primary);display:grid;place-items:center;font-weight:600}
+.user .who{font-size:13px;line-height:1.3} .user .who small{display:block;color:var(--ink-3);font-size:11px}
+
+.content{flex:1;overflow-y:auto;padding:24px 26px 40px}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px}
+.page-head h1{font-size:21px;font-weight:600} .page-head p{font-size:13px;color:var(--ink-3);margin-top:5px}
+
+.btn{font-size:13.5px;cursor:pointer;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2);padding:9px 16px;border-radius:var(--radius-sm);display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.btn svg{width:16px;height:16px}
+.btn:hover{border-color:var(--primary);color:var(--primary)}
+.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)} .btn.primary:hover{background:var(--primary-2);color:#fff}
+.btn.ghost{background:transparent}
+
+/* 工具栏 */
+.toolbar{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:18px;box-shadow:var(--shadow)}
+.cat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.cat-tabs .ct{font-size:13px;padding:7px 15px;border-radius:999px;cursor:pointer;color:var(--ink-2);background:var(--surface-2);border:1px solid transparent;transition:.15s}
+.cat-tabs .ct:hover{color:var(--primary)} .cat-tabs .ct.on{background:var(--primary-weak);color:var(--primary);font-weight:600}
+.filter-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.field{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px 13px}
+.field svg{width:15px;height:15px;color:var(--ink-3)}
+.field input,.field select{border:0;background:transparent;outline:0;font-family:var(--font-cn);font-size:13px;color:var(--ink)}
+.field input::placeholder{color:var(--ink-3)}
+.filter-row .sp{flex:1}
+.seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden}
+.seg button{font-size:13px;border:0;background:transparent;color:var(--ink-2);padding:8px 14px;cursor:pointer} .seg button.on{background:var(--primary);color:#fff}
+
+.bulk{display:flex;align-items:center;gap:14px;padding:11px 16px;margin-bottom:14px;border-radius:var(--radius);background:var(--primary-weak);color:var(--primary);font-size:13px}
+.bulk b{font-family:var(--font-en)} .bulk .acts{margin-left:auto;display:flex;gap:8px}
+.bulk .acts button{font-size:12.5px;cursor:pointer;border:1px solid currentColor;color:inherit;background:transparent;padding:6px 12px;border-radius:var(--radius-sm)}
+
+.table-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;font-size:12px;font-weight:600;color:var(--ink-3);letter-spacing:.03em;padding:14px 16px;background:var(--surface-2);border-bottom:1px solid var(--line);white-space:nowrap}
+tbody td{padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr{transition:.13s} tbody tr:hover{background:var(--surface-2)}
+.ck{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--line-strong);display:inline-grid;place-items:center;cursor:pointer;background:var(--surface);flex-shrink:0}
+.ck.on{background:var(--primary);border-color:var(--primary)} .ck svg{width:11px;height:11px;color:#fff;display:none} .ck.on svg{display:block}
+
+/* 真实饮品图片占位框 */
+.thumb{width:48px;height:48px;border-radius:var(--radius-sm);overflow:hidden;flex-shrink:0;position:relative;background:var(--surface-2);border:1px solid var(--line)}
+.thumb .ph{width:100%;height:100%;display:grid;place-items:center;color:var(--ink-3)}
+.thumb .ph svg{width:22px;height:22px}
+.thumb.c0{background:#F3E2D3} .thumb.c1{background:#E9DCC9} .thumb.c2{background:#F0E6D6} .thumb.c3{background:#EADfD0}
+.dname{display:flex;align-items:center;gap:12px}
+.dname .t{font-weight:600;font-size:14px;color:var(--ink)} .dname .d{font-size:12px;color:var(--ink-3);margin-top:2px;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-pill{display:inline-block;font-size:12.5px;padding:4px 11px;border-radius:var(--radius-sm);background:var(--primary-weak);color:var(--primary);font-weight:500}
+.flavors{display:flex;gap:5px;flex-wrap:wrap;max-width:230px}
+.tag{display:inline-block;font-size:12px;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line)}
+.price{font-family:var(--font-mono);font-weight:600;font-size:14px;color:var(--ink)} .price::before{content:'¥';font-size:11px;color:var(--ink-3);margin-right:1px}
+.toggle{width:40px;height:22px;border-radius:999px;background:var(--line-strong);position:relative;cursor:pointer;transition:.18s;flex-shrink:0;display:inline-block;vertical-align:middle}
+.toggle.on{background:var(--ok)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.2)} .toggle.on::after{left:20px}
+.st-wrap{display:inline-flex;align-items:center;gap:9px} .st-wrap span.txt{font-size:13px;color:var(--ink-2)}
+.ops{display:flex;align-items:center;gap:2px;justify-content:flex-end}
+.op-text{font-size:13px;color:var(--primary);cursor:pointer;padding:4px 8px;border-radius:5px} .op-text:hover{background:var(--primary-weak)}
+.op-text.del{color:var(--off)} .op-text.del:hover{background:var(--off-weak)}
+.op-sep{width:1px;height:12px;background:var(--line-strong);margin:0 2px}
+
+.pager{display:flex;align-items:center;padding:16px;gap:14px}
+.pager .info{font-size:13px;color:var(--ink-3)} .pager .info b{color:var(--ink);font-family:var(--font-en)}
+.pager .sz{margin-left:auto;font-size:13px;color:var(--ink-3);display:flex;align-items:center;gap:8px}
+.pager .sz select{font-family:var(--font-cn);font-size:13px;border:1px solid var(--line);border-radius:var(--radius-sm);padding:6px 8px;background:var(--surface);color:var(--ink);outline:0}
+.pager .pages{display:flex;gap:6px}
+.pager .pages button{min-width:34px;height:34px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--surface);font-family:var(--font-en);font-size:13px;color:var(--ink-2);cursor:pointer;padding:0 10px;transition:.13s}
+.pager .pages button:hover{border-color:var(--primary);color:var(--primary)} .pager .pages button.on{background:var(--primary);color:#fff;border-color:var(--primary)} .pager .pages button:disabled{opacity:.4;cursor:not-allowed}
+
+/* 占位页 */
+.placeholder{background:var(--surface);border:1px dashed var(--line-strong);border-radius:var(--radius-lg);padding:70px 40px;text-align:center;color:var(--ink-3)}
+.placeholder svg{width:46px;height:46px;color:var(--line-strong);margin-bottom:16px}
+.placeholder h3{font-size:17px;color:var(--ink-2);margin-bottom:8px} .placeholder p{font-size:13.5px}
+
+/* ========== 工作台看板 ========== */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--primary-weak);color:var(--primary);margin-bottom:14px}
+.kpi .ic svg{width:21px;height:21px}
+.kpi .lab{font-size:13px;color:var(--ink-3)}
+.kpi .val{font-family:var(--font-en);font-size:30px;font-weight:700;color:var(--ink);margin-top:4px;letter-spacing:-.01em}
+.kpi .val small{font-size:15px;font-weight:500;color:var(--ink-3);margin-left:2px}
+.kpi .delta{font-size:12.5px;margin-top:8px;display:inline-flex;align-items:center;gap:4px}
+.kpi .delta.up{color:var(--ok)} .kpi .delta.down{color:var(--off)}
+.kpi .delta svg{width:13px;height:13px}
+.dash-2col{display:grid;grid-template-columns:1fr 360px;gap:16px;margin-bottom:20px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden}
+.panel-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center}
+.panel-head h3{font-size:15px;font-weight:600} .panel-head .more{margin-left:auto;font-size:12.5px;color:var(--primary);cursor:pointer}
+.panel-body{padding:20px}
+/* 柱图 */
+.chart{display:flex;align-items:flex-end;gap:14px;height:200px;padding-top:10px}
+.chart .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%}
+.chart .bar-wrap{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.chart .bar{width:60%;max-width:34px;background:linear-gradient(var(--primary),var(--primary-weak));border-radius:6px 6px 0 0;position:relative;transition:.4s;min-height:4px}
+.chart .bar:hover{filter:brightness(1.08)}
+.chart .bar .tip{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-family:var(--font-mono);font-size:11px;color:var(--ink-2);white-space:nowrap}
+.chart .bx{font-size:12px;color:var(--ink-3)}
+/* 热销榜 */
+.rank-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.rank-item:last-child{border-bottom:0}
+.rank-no{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-family:var(--font-en);font-size:13px;font-weight:600;background:var(--surface-2);color:var(--ink-3);flex-shrink:0}
+.rank-item:nth-child(1) .rank-no{background:var(--primary);color:#fff} .rank-item:nth-child(2) .rank-no{background:var(--primary-weak);color:var(--primary)} .rank-item:nth-child(3) .rank-no{background:var(--primary-weak);color:var(--primary)}
+.rank-item .rn{flex:1;font-size:13.5px;font-weight:500} .rank-item .rc{font-family:var(--font-mono);font-size:13px;color:var(--ink-3)}
+
+/* ========== 订单状态徽章 ========== */
+.obadge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:4px 11px;border-radius:999px;font-weight:500;white-space:nowrap}
+.obadge i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.ob-wait{background:var(--warn-weak);color:var(--warn)}
+.ob-making{background:#E4ECF5;color:#4B79A8}
+.ob-ready{background:var(--ok-weak);color:var(--ok)}
+.ob-done{background:var(--surface-2);color:var(--ink-3)}
+.ob-cancel{background:var(--off-weak);color:var(--off)}
+.ostat-tabs{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);padding:4px;margin-bottom:18px;width:fit-content}
+.ostat-tabs button{font-size:13px;border:0;background:transparent;color:var(--ink-2);padding:8px 16px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.13s}
+.ostat-tabs button .cnt{font-family:var(--font-en);font-size:11px;background:var(--line-strong);color:var(--ink-2);padding:0 6px;border-radius:999px;min-width:18px;text-align:center}
+.ostat-tabs button.on{background:var(--surface);color:var(--primary);font-weight:600;box-shadow:var(--shadow)} .ostat-tabs button.on .cnt{background:var(--primary);color:#fff}
+.oid{font-family:var(--font-mono);font-size:13px;color:var(--ink-2)}
+.ocust{display:flex;align-items:center;gap:9px}
+.ocust .oav{width:32px;height:32px;border-radius:50%;background:var(--primary-weak);color:var(--primary);display:grid;place-items:center;font-size:12px;font-weight:600;flex-shrink:0}
+.ocust .on-name{font-size:13.5px;font-weight:500} .ocust .on-phone{font-size:12px;color:var(--ink-3);font-family:var(--font-mono)}
+.oitems{font-size:13px;color:var(--ink-2);max-width:240px} .oitems b{color:var(--ink);font-weight:600}
+
+/* 订单详情抽屉 */
+.od-sec{margin-bottom:22px}
+.od-sec h4{font-size:13px;color:var(--ink-3);font-weight:600;margin-bottom:12px;letter-spacing:.03em}
+.od-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.od-info-row{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 0}
+.od-info-row .k{color:var(--ink-3)} .od-info-row .v{color:var(--ink);font-weight:500;text-align:right} .od-info-row .v.mono{font-family:var(--font-mono)}
+.od-line{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)} .od-line:last-child{border-bottom:0}
+.od-line .lthumb{width:44px;height:44px;border-radius:8px;background:#F3E2D3;display:grid;place-items:center;color:var(--primary);flex-shrink:0} .od-line .lthumb svg{width:22px;height:22px}
+.od-line .lmid{flex:1} .od-line .lname{font-size:14px;font-weight:600} .od-line .lspec{font-size:12px;color:var(--ink-3);margin-top:3px}
+.od-line .lqty{font-family:var(--font-mono);font-size:13px;color:var(--ink-3)} .od-line .lprice{font-family:var(--font-mono);font-size:14px;font-weight:600;text-align:right;min-width:64px}
+.od-total{display:flex;justify-content:space-between;align-items:center;padding-top:14px;margin-top:4px;border-top:1.5px solid var(--line-strong)}
+.od-total .tl{font-size:14px;color:var(--ink-2)} .od-total .tv{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--primary)}
+.od-steps{display:flex;flex-direction:column;gap:0}
+.od-step{display:flex;gap:13px;position:relative;padding-bottom:20px}
+.od-step:last-child{padding-bottom:0}
+.od-step .sdot{width:26px;height:26px;border-radius:50%;background:var(--surface-2);border:2px solid var(--line-strong);display:grid;place-items:center;flex-shrink:0;z-index:2;color:var(--ink-3)} .od-step .sdot svg{width:13px;height:13px}
+.od-step.done .sdot{background:var(--ok);border-color:var(--ok);color:#fff}
+.od-step:not(:last-child)::before{content:'';position:absolute;left:12px;top:26px;bottom:0;width:2px;background:var(--line-strong)}
+.od-step.done:not(:last-child)::before{background:var(--ok)}
+.od-step .stext{padding-top:3px} .od-step .st{font-size:13.5px;font-weight:500} .od-step.done .st{color:var(--ink)} .od-step:not(.done) .st{color:var(--ink-3)}
+.od-step .stime{font-size:12px;color:var(--ink-3);font-family:var(--font-mono);margin-top:2px}
+
+/* 通用分类卡 */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.catc{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;transition:.15s}
+.catc:hover{border-color:var(--line-strong);transform:translateY(-2px)}
+.catc .cic{width:48px;height:48px;border-radius:13px;background:var(--primary-weak);color:var(--primary);display:grid;place-items:center;flex-shrink:0} .catc .cic svg{width:24px;height:24px}
+.catc .cmid{flex:1;min-width:0} .catc .cname{font-size:15px;font-weight:600} .catc .cmeta{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+.catc .cops{display:flex;gap:4px}
+.drag-handle{color:var(--ink-3);cursor:grab} .drag-handle svg{width:16px;height:16px}
+
+/* ========== 抽屉(新增/编辑饮品) ========== */
+.mask{position:fixed;inset:0;background:rgba(40,28,20,.42);backdrop-filter:blur(2px);z-index:200;opacity:0;pointer-events:none;transition:.25s}
+.mask.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:540px;max-width:94vw;background:var(--bg);z-index:201;box-shadow:var(--shadow-lg);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.drawer.show{transform:translateX(0)}
+.dwr-head{padding:22px 26px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center}
+.dwr-head h2{font-size:18px;font-weight:600} .dwr-head p{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+.dwr-head .x{margin-left:auto;width:34px;height:34px;border-radius:8px;display:grid;place-items:center;cursor:pointer;color:var(--ink-2)} .dwr-head .x:hover{background:var(--surface-2)} .dwr-head .x svg{width:18px;height:18px}
+.dwr-body{flex:1;overflow-y:auto;padding:24px 26px}
+.fgrp{margin-bottom:20px}
+.fgrp>label{display:block;font-size:13px;color:var(--ink-2);font-weight:500;margin-bottom:9px}
+.fgrp>label .req{color:var(--off);margin-left:3px}
+.inp2{width:100%;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius);padding:11px 14px;font-family:var(--font-cn);font-size:14px;color:var(--ink);outline:0;transition:.15s}
+.inp2:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-weak)}
+textarea.inp2{resize:vertical;min-height:74px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.price-inp{display:flex;align-items:center;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius);padding:0 14px;transition:.15s}
+.price-inp:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-weak)}
+.price-inp span{color:var(--ink-3);font-family:var(--font-mono)} .price-inp input{border:0;outline:0;background:transparent;padding:11px 8px;font-family:var(--font-mono);font-size:14px;color:var(--ink);width:100%}
+
+/* 图片上传占位 */
+.upload{display:flex;gap:14px;align-items:flex-start}
+.up-box{width:120px;height:120px;border:1.5px dashed var(--line-strong);border-radius:var(--radius);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;color:var(--ink-3);transition:.15s;flex-shrink:0}
+.up-box:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-weak)}
+.up-box svg{width:26px;height:26px} .up-box span{font-size:12px}
+.up-preview{width:120px;height:120px;border-radius:var(--radius);background:#F3E2D3;position:relative;overflow:hidden;flex-shrink:0;border:1px solid var(--line)}
+.up-preview .pv{width:100%;height:100%;display:grid;place-items:center;color:var(--primary)} .up-preview .pv svg{width:34px;height:34px}
+.up-preview .rm{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:6px;background:rgba(40,28,20,.6);color:#fff;display:grid;place-items:center;cursor:pointer} .up-preview .rm svg{width:13px;height:13px}
+.up-hint{font-size:12.5px;color:var(--ink-3);line-height:1.7;padding-top:4px}
+
+/* 口味动态增删 */
+.flavor-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.flavor-row{display:flex;gap:10px;align-items:flex-start}
+.flavor-row .fn{width:120px;flex-shrink:0;height:40px}
+.tag-input{flex:1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius);padding:6px 10px;min-height:40px;cursor:text;transition:.15s}
+.tag-input:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-weak)}
+.vtag{display:inline-flex;align-items:center;gap:5px;background:var(--primary-weak);color:var(--primary);font-size:12.5px;padding:4px 9px;border-radius:6px;font-weight:500}
+.vtag i{cursor:pointer;font-style:normal;font-size:15px;line-height:1;opacity:.6} .vtag i:hover{opacity:1}
+.tag-input .vadd{border:0;outline:0;background:transparent;font-family:var(--font-cn);font-size:13px;color:var(--ink);flex:1;min-width:90px;padding:4px 0}
+.tag-input .vadd::placeholder{color:var(--ink-3)}
+.flavor-row .del-f{width:38px;height:40px;border-radius:var(--radius-sm);border:1px solid var(--line-strong);background:var(--surface);color:var(--off);cursor:pointer;display:grid;place-items:center;flex-shrink:0} .flavor-row .del-f:hover{background:var(--off-weak);border-color:var(--off)} .flavor-row .del-f svg{width:15px;height:15px}
+.add-flavor{width:100%;border:1.5px dashed var(--line-strong);background:transparent;color:var(--primary);border-radius:var(--radius);padding:10px;cursor:pointer;font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:7px} .add-flavor:hover{background:var(--primary-weak)} .add-flavor svg{width:16px;height:16px}
+.flavor-tip{font-size:12px;color:var(--ink-3);margin-top:8px}
+
+.switch-field{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:13px 16px}
+.switch-field .txt{font-size:13.5px} .switch-field .txt small{display:block;color:var(--ink-3);font-size:12px;margin-top:2px}
+.switch-field .toggle{margin-left:auto}
+
+/* 分类图标选择器 */
+.cat-icon-opt:hover{border-color:var(--primary)!important;color:var(--primary)}
+.cat-icon-opt.picked{border-color:var(--primary)!important;background:var(--primary-weak)!important;color:var(--primary)!important}
+
+.dwr-foot{padding:16px 26px;background:var(--surface);border-top:1px solid var(--line);display:flex;gap:12px;justify-content:flex-end}
+
+/* toast */
+.toast{position:fixed;top:74px;left:50%;transform:translateX(-50%) translateY(-12px);background:var(--ink);color:#fff;padding:11px 20px;border-radius:999px;font-size:13.5px;z-index:300;opacity:0;pointer-events:none;transition:.25s;display:flex;align-items:center;gap:9px;box-shadow:var(--shadow-lg)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)} .toast svg{width:16px;height:16px;color:var(--ok)}
+</style>
+</head>
+<body>
+
+<!-- ============ 登录页 ============ -->
+<div class="login" id="loginView">
+  <div class="login-art">
+    <div class="lbrand">
+      <div class="lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/><path d="M12 14v8"/></svg></div>
+      <b>茶咖优选</b>
+    </div>
+    <div class="pitch">
+      <h2>饮品店订购系统<br>管理后台</h2>
+      <p>统一管理门店饮品、分类与订单，让每一杯都准时、对味地送到顾客手中。</p>
+    </div>
+    <div class="foot">© 2026 茶咖优选 · 餐饮管理平台 · 内部员工专用</div>
+  </div>
+  <div class="login-form">
+    <div class="login-card">
+      <h1>欢迎回来 👋</h1>
+      <p class="sub">请使用员工账号登录管理后台</p>
+      <div class="lf">
+        <label>账号</label>
+        <div class="inp">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <input id="loginUser" value="admin" placeholder="请输入员工账号">
+        </div>
+      </div>
+      <div class="lf">
+        <label>密码</label>
+        <div class="inp">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input id="loginPwd" type="password" value="123456" placeholder="请输入密码">
+          <svg class="eye" onclick="togglePwd(this)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+      </div>
+      <div class="lrow">
+        <label><span class="ck on" style="width:16px;height:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span>记住我</label>
+        <a>忘记密码？</a>
+      </div>
+      <button class="lbtn" onclick="doLogin()">登 录</button>
+      <p class="ltip">演示账号已预填，点击「登录」直接进入</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 后台 ============ -->
+<div class="app hide" id="appView">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/><path d="M12 14v8"/></svg></div>
+      <div class="name">茶咖优选<small>餐饮管理后台</small></div>
+    </div>
+    <nav class="nav">
+      <div class="grp">概览</div>
+      <a data-page="dash" onclick="go('dash',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>工作台</a>
+      <div class="grp">商品运营</div>
+      <a data-page="drink" class="active" onclick="go('drink',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/></svg>饮品管理</a>
+      <a data-page="cat" onclick="go('cat',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>饮品分类</a>
+      <div class="grp">交易</div>
+      <a data-page="order" onclick="go('order',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2 6 6H2"/><path d="M2 6h20l-2 13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2L2 6Z"/><path d="M9 11v5"/><path d="M15 11v5"/></svg>订单管理<span class="badge">6</span></a>
+      <div class="grp">系统</div>
+      <a data-page="staff" onclick="go('staff',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>员工管理</a>
+    </nav>
+    <div class="side-foot"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>v1.0 · 原型</div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb" id="crumb">商品运营 / <b>饮品管理</b></div>
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="搜索…"></div>
+      <div class="right">
+        <div class="icon-btn"><span class="ping"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+        <div class="user" onclick="logout()"><div class="av">键</div><div class="who">冯键怀<small>店长</small></div></div>
+      </div>
+    </header>
+
+    <div class="content" id="content"><!-- 动态 --></div>
+  </div>
+</div>
+
+<!-- 抽屉 -->
+<div class="mask" id="mask" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="dwr-head">
+    <div><h2 id="dwrTitle">新增饮品</h2><p id="dwrSub">填写饮品基本信息与口味规格</p></div>
+    <div class="x" onclick="closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+  </div>
+  <div class="dwr-body">
+    <div class="fgrp">
+      <label>饮品图片<span class="req">*</span></label>
+      <div class="upload">
+        <div class="up-preview" id="upPreview">
+          <div class="pv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/></svg></div>
+          <div class="rm" onclick="rmImg()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+        </div>
+        <div class="up-box hide" id="upBox" onclick="addImg()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+          <span>点击上传</span>
+        </div>
+        <div class="up-hint">支持 JPG / PNG<br>建议 800×800，≤ 2MB<br>上传后存储到 OSS 返回链接</div>
+      </div>
+    </div>
+    <div class="two">
+      <div class="fgrp"><label>饮品名称<span class="req">*</span></label><input class="inp2" id="fName" placeholder="如：招牌珍珠奶茶"></div>
+      <div class="fgrp"><label>所属分类<span class="req">*</span></label>
+        <select class="inp2" id="fCat"><option value="">请选择分类</option><option>奶茶</option><option>咖啡</option><option>鲜果茶</option><option>气泡饮</option><option>小食甜点</option></select>
+      </div>
+    </div>
+    <div class="two">
+      <div class="fgrp"><label>售价<span class="req">*</span></label>
+        <div class="price-inp"><span>¥</span><input id="fPrice" placeholder="0.00"></div>
+      </div>
+      <div class="fgrp"><label>初始状态</label>
+        <div class="switch-field"><div class="txt">起售<small>立即在用户端展示</small></div><span class="toggle on" id="fStatus" onclick="this.classList.toggle('on')"></span></div>
+      </div>
+    </div>
+    <div class="fgrp"><label>饮品描述</label><textarea class="inp2" id="fDesc" placeholder="如：锡兰红茶打底，手煮黑糖珍珠，香浓回甘"></textarea></div>
+    <div class="fgrp">
+      <label>口味规格 <span style="color:var(--ink-3);font-weight:400">（对应 drink_flavor 表，一对多）</span></label>
+      <div class="flavor-list" id="flavorList"></div>
+      <button class="add-flavor" onclick="addFlavor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>添加口味规格</button>
+      <p class="flavor-tip">每行一个口味维度：左侧填口味名（如「甜度」），右侧逐个输入可选值后按回车生成标签（如 无糖 / 少糖 / 半糖 / 全糖）</p>
+    </div>
+  </div>
+  <div class="dwr-foot">
+    <button class="btn ghost" onclick="closeDrawer()">取消</button>
+    <button class="btn primary" onclick="saveDrink()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>保存饮品</button>
+  </div>
+</div>
+
+<!-- 订单详情抽屉 -->
+<div class="mask" id="odMask" onclick="closeOrder()"></div>
+<div class="drawer" id="odDrawer">
+  <div class="dwr-head">
+    <div><h2 id="odTitle">订单详情</h2><p id="odSub"></p></div>
+    <div class="x" onclick="closeOrder()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+  </div>
+  <div class="dwr-body" id="odBody"></div>
+  <div class="dwr-foot" id="odFoot"></div>
+</div>
+
+<!-- 分类抽屉（新增/编辑） -->
+<div class="mask" id="catMask" onclick="closeCat()"></div>
+<div class="drawer" id="catDrawer">
+  <div class="dwr-head">
+    <div><h2 id="catTitle">新增分类</h2><p id="catSub">设置分类名称、图标与排序</p></div>
+    <div class="x" onclick="closeCat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+  </div>
+  <div class="dwr-body">
+    <div class="fgrp"><label>分类名称<span class="req">*</span></label><input class="inp2" id="catName" placeholder="如：奶茶、咖啡、鲜果茶"></div>
+    <div class="fgrp">
+      <label>分类图标<span class="req">*</span></label>
+      <div id="catIconPicker" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+      <input type="hidden" id="catIconVal" value="">
+    </div>
+    <div class="two">
+      <div class="fgrp"><label>排序号</label><input class="inp2" id="catSort" type="number" placeholder="数字越小越靠前" value="0"></div>
+      <div class="fgrp">
+        <label>状态</label>
+        <div class="switch-field"><div class="txt">启用<small>停用后该分类在用户端隐藏</small></div><span class="toggle on" id="catStatus" onclick="this.classList.toggle('on')"></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="dwr-foot">
+    <button class="btn ghost" onclick="closeCat()">取消</button>
+    <button class="btn primary" onclick="saveCat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>保存分类</button>
+  </div>
+</div>
+
+<!-- 员工抽屉（新增/编辑） -->
+<div class="mask" id="sfMask" onclick="closeStaff()"></div>
+<div class="drawer" id="sfDrawer">
+  <div class="dwr-head">
+    <div><h2 id="sfTitle">新增员工</h2><p id="sfSub">填写员工基本信息与岗位</p></div>
+    <div class="x" onclick="closeStaff()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+  </div>
+  <div class="dwr-body">
+    <div class="two">
+      <div class="fgrp"><label>姓名<span class="req">*</span></label><input class="inp2" id="sfName" placeholder="如：张晓雯"></div>
+      <div class="fgrp"><label>登录账号<span class="req">*</span></label><input class="inp2" id="sfAccount" placeholder="如：zhangxw"></div>
+    </div>
+    <div class="two">
+      <div class="fgrp"><label>手机号<span class="req">*</span></label><input class="inp2" id="sfPhone" placeholder="如：13800001234"></div>
+      <div class="fgrp"><label>岗位<span class="req">*</span></label>
+        <select class="inp2" id="sfRole"><option value="">请选择岗位</option><option>店长</option><option>咖啡师</option><option>茶艺师</option><option>收银员</option></select>
+      </div>
+    </div>
+    <div class="fgrp">
+      <label>账号状态</label>
+      <div class="switch-field"><div class="txt">启用<small>停用后该员工无法登录管理后台</small></div><span class="toggle on" id="sfStatus" onclick="this.classList.toggle('on')"></span></div>
+    </div>
+    <div class="fgrp"><label>备注</label><textarea class="inp2" id="sfNote" placeholder="如：擅长手冲与拉花，负责早班"></textarea></div>
+  </div>
+  <div class="dwr-foot">
+    <button class="btn ghost" onclick="closeStaff()">取消</button>
+    <button class="btn primary" onclick="saveStaff()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>保存员工</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg><span id="toastMsg">已保存</span></div>
+
+<script>
+/* ===== 登录 ===== */
+function togglePwd(el){const i=el.parentNode.querySelector('input');i.type=i.type==='password'?'text':'password'}
+function doLogin(){document.getElementById('loginView').classList.add('hide');document.getElementById('appView').classList.remove('hide');go('drink',document.querySelector('[data-page="drink"]'));}
+function logout(){if(confirm('退出登录？')){document.getElementById('appView').classList.add('hide');document.getElementById('loginView').classList.remove('hide')}}
+
+/* ===== 数据 ===== */
+const cupSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/></svg>';
+const checkSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>';
+let drinks=[
+  {id:1,n:'招牌珍珠奶茶',d:'锡兰红茶打底，手煮黑糖珍珠',c:'奶茶',p:'16.00',f:[{name:'甜度',values:['三分糖','七分糖','全糖']},{name:'温度',values:['常温','加冰']}],on:true,t:'2026-05-28 14:20'},
+  {id:2,n:'生椰拿铁',d:'冷萃浓缩 + 海南生椰乳',c:'咖啡',p:'22.00',f:[{name:'温度',values:['标准','少冰']}],on:true,t:'2026-05-28 11:05'},
+  {id:3,n:'杨枝甘露',d:'芒果西柚西米露',c:'鲜果茶',p:'19.00',f:[{name:'甜度',values:['正常糖','少糖']}],on:true,t:'2026-05-27 18:42'},
+  {id:4,n:'抹茶拿铁',d:'宇治抹茶 + 鲜牛乳',c:'咖啡',p:'20.00',f:[{name:'温度',values:['热','冰']}],on:false,t:'2026-05-27 09:30'},
+  {id:5,n:'满杯红柚',d:'红西柚果肉 + 茉莉绿茶',c:'鲜果茶',p:'21.00',f:[{name:'冰量',values:['多冰','少冰','去冰']}],on:true,t:'2026-05-26 16:15'},
+  {id:6,n:'焦糖玛奇朵',d:'焦糖糖浆 + 绵密奶泡',c:'咖啡',p:'23.00',f:[{name:'温度',values:['标准']}],on:true,t:'2026-05-26 10:08'},
+  {id:7,n:'烧仙草奶茶',d:'仙草冻 + 椰果 + 红豆',c:'奶茶',p:'18.00',f:[{name:'加料',values:['加椰果','加波波']}],on:false,t:'2026-05-25 15:50'},
+  {id:8,n:'海盐芝士葡萄',d:'巨峰葡萄 + 海盐芝士奶盖',c:'鲜果茶',p:'24.00',f:[{name:'甜度',values:['正常糖','少糖','去糖']}],on:true,t:'2026-05-25 13:22'},
+];
+// 把饮品的口味维度拍平成标签数组，仅用于列表展示
+function flavorTags(f){return f.reduce((a,g)=>a.concat(g.values),[])}
+
+/* ===== 分类数据 ===== */
+let cats=[
+  {id:1,name:'奶茶',icon:'cup',count:12,on:true},
+  {id:2,name:'咖啡',icon:'coffee',count:9,on:true},
+  {id:3,name:'鲜果茶',icon:'fruit',count:8,on:true},
+  {id:4,name:'气泡饮',icon:'soda',count:5,on:true},
+  {id:5,name:'小食甜点',icon:'cake',count:7,on:false},
+];
+const catIcons={
+  cup:'<path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/>',
+  coffee:'<path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/>',
+  fruit:'<path d="M12 2a3 3 0 0 0 3 3"/><path d="M18.5 7.5C20 9 21 11.5 21 14a9 9 0 0 1-18 0c0-3 1.5-6 4-7.5C9 5 11 6 12 6s3-1 4.5 0Z"/>',
+  soda:'<path d="M5 7h14l-1.5 13a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1L5 7Z"/><path d="M5 7l1-3h12l1 3"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+  cake:'<path d="M3 21h18M4 16h16v5H4zM5 16v-4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4"/><path d="M12 6V3M9 6V4M15 6V4"/>',
+};
+
+/* ===== 订单数据 ===== */
+let orders=[
+  {id:'D2026060500128',cust:'李雨桐',phone:'138****5021',av:'李',amount:'58.00',status:'wait',time:'2026-06-05 10:24',pickup:'到店自取',no:'A12',
+    items:[{n:'招牌珍珠奶茶',spec:'七分糖 / 加冰',qty:2,p:'16.00'},{n:'生椰拿铁',spec:'少冰',qty:1,p:'22.00'},{n:'海盐芝士葡萄',spec:'少糖',qty:0,p:'4.00'}]},
+  {id:'D2026060500127',cust:'王浩然',phone:'159****8830',av:'王',amount:'40.00',status:'making',time:'2026-06-05 10:18',pickup:'外卖配送',no:'A11',
+    items:[{n:'杨枝甘露',spec:'正常糖',qty:1,p:'19.00'},{n:'满杯红柚',spec:'去冰',qty:1,p:'21.00'}]},
+  {id:'D2026060500126',cust:'陈思琪',phone:'176****1245',av:'陈',amount:'23.00',status:'ready',time:'2026-06-05 10:09',pickup:'到店自取',no:'A10',
+    items:[{n:'焦糖玛奇朵',spec:'标准',qty:1,p:'23.00'}]},
+  {id:'D2026060500125',cust:'刘梓涵',phone:'135****6677',av:'刘',amount:'52.00',status:'making',time:'2026-06-05 09:56',pickup:'到店自取',no:'A09',
+    items:[{n:'生椰拿铁',spec:'标准',qty:2,p:'22.00'},{n:'烧仙草奶茶',spec:'加椰果',qty:0,p:'8.00'}]},
+  {id:'D2026060500124',cust:'赵子轩',phone:'188****3392',av:'赵',amount:'36.00',status:'done',time:'2026-06-05 09:30',pickup:'外卖配送',no:'A08',
+    items:[{n:'抹茶拿铁',spec:'冰',qty:1,p:'20.00'},{n:'招牌珍珠奶茶',spec:'三分糖',qty:1,p:'16.00'}]},
+  {id:'D2026060500123',cust:'孙艺宁',phone:'137****0918',av:'孙',amount:'19.00',status:'cancel',time:'2026-06-05 09:12',pickup:'到店自取',no:'A07',
+    items:[{n:'杨枝甘露',spec:'少糖',qty:1,p:'19.00'}]},
+  {id:'D2026060500122',cust:'周晨曦',phone:'150****4456',av:'周',amount:'64.00',status:'done',time:'2026-06-05 08:50',pickup:'到店自取',no:'A06',
+    items:[{n:'海盐芝士葡萄',spec:'正常糖',qty:2,p:'24.00'},{n:'焦糖玛奇朵',spec:'标准',qty:0,p:'16.00'}]},
+];
+const oStatusMap={
+  wait:{t:'待接单',cls:'ob-wait'},making:{t:'制作中',cls:'ob-making'},ready:{t:'待取餐',cls:'ob-ready'},done:{t:'已完成',cls:'ob-done'},cancel:{t:'已取消',cls:'ob-cancel'}
+};
+let oFilter='all';
+function obadge(s){const m=oStatusMap[s];return `<span class="obadge ${m.cls}"><i></i>${m.t}</span>`}
+
+/* ===== 员工数据 ===== */
+let staffs=[
+  {id:1,name:'冯键怀',account:'admin',phone:'138****1234',role:'店长',on:true,note:'门店负责人，拥有全部权限',t:'2026-05-20 09:00'},
+  {id:2,name:'张晓雯',account:'zhangxw',phone:'159****5678',role:'咖啡师',on:true,note:'擅长手冲与拉花',t:'2026-05-22 14:30'},
+  {id:3,name:'李明',account:'liming',phone:'176****9012',role:'咖啡师',on:true,note:'晚班主力',t:'2026-05-23 10:15'},
+  {id:4,name:'王思琪',account:'wangsq',phone:'135****3456',role:'收银员',on:true,note:'负责前台点单与接待',t:'2026-05-24 16:40'},
+  {id:5,name:'赵雨萱',account:'zhaoyx',phone:'188****7890',role:'茶艺师',on:false,note:'已离职，账号停用',t:'2026-05-28 11:20'},
+  {id:6,name:'刘子涵',account:'liuzh',phone:'150****2345',role:'咖啡师',on:true,note:'兼职，周末班',t:'2026-06-01 09:45'},
+];
+const staffRoles=['店长','咖啡师','茶艺师','收银员'];
+let staffFilter='all';
+
+/* ===== 路由 ===== */
+const titles={dash:'工作台',drink:'饮品管理',cat:'饮品分类',order:'订单管理',staff:'员工管理'};
+const groups={dash:'概览',drink:'商品运营',cat:'商品运营',order:'交易',staff:'系统'};
+function go(page,el){
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.getElementById('crumb').innerHTML=groups[page]+' / <b>'+titles[page]+'</b>';
+  if(page==='drink')renderDrink();
+  else if(page==='order')renderOrder();
+  else if(page==='cat')renderCat();
+  else if(page==='dash')renderDash();
+  else if(page==='staff')renderStaff();
+  else renderPlaceholder(page);
+}
+function renderPlaceholder(page){
+  document.getElementById('content').innerHTML=`
+    <div class="page-head"><div><h1>${titles[page]}</h1><p>该模块将在下一轮基于当前定调展开</p></div></div>
+    <div class="placeholder">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      <h3>${titles[page]} · 原型待展开</h3>
+      <p>先确认「饮品管理」的风格与交互，再批量套用到此页面</p>
+    </div>`;
+}
+
+/* ===== 工作台看板 ===== */
+function renderDash(){
+  const chartData=[
+    {d:'周一',v:3280},{d:'周二',v:4120},{d:'周三',v:3860},{d:'周四',v:5240},{d:'周五',v:6180},{d:'周六',v:8420},{d:'周日',v:7650}
+  ];
+  const max=Math.max(...chartData.map(x=>x.v));
+  const ranks=[
+    {n:'生椰拿铁',c:128},{n:'招牌珍珠奶茶',c:116},{n:'杨枝甘露',c:98},{n:'满杯红柚',c:81},{n:'焦糖玛奇朵',c:64}
+  ];
+  const arrowUp='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>';
+  const arrowDn='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7 17 17M17 7v10H7"/></svg>';
+  document.getElementById('content').innerHTML=`
+    <div class="page-head"><div><h1>工作台</h1><p>2026 年 6 月 5 日 · 今日门店经营概览</p></div>
+      <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.8 1 6.5 2.7L21 8"/><path d="M21 3v5h-5"/></svg>刷新</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="lab">今日营业额</div><div class="val">¥8,420<small>.50</small></div><div class="delta up">${arrowUp} 较昨日 +18.6%</div></div>
+      <div class="kpi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2 6 6H2"/><path d="M2 6h20l-2 13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2L2 6Z"/></svg></div>
+        <div class="lab">今日订单数</div><div class="val">186</div><div class="delta up">${arrowUp} 较昨日 +12.4%</div></div>
+      <div class="kpi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <div class="lab">待处理订单</div><div class="val">6</div><div class="delta down">${arrowDn} 待接单 3 · 制作中 3</div></div>
+      <div class="kpi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+        <div class="lab">客单价</div><div class="val"><small>¥</small>45<small>.27</small></div><div class="delta up">${arrowUp} 较昨日 +5.5%</div></div>
+    </div>
+    <div class="dash-2col">
+      <div class="panel">
+        <div class="panel-head"><h3>近 7 日销售趋势</h3><span class="more">本周 ▾</span></div>
+        <div class="panel-body">
+          <div class="chart">
+            ${chartData.map(x=>`<div class="bar-col"><div class="bar-wrap"><div class="bar" style="height:${Math.round(x.v/max*100)}%"><span class="tip">¥${x.v}</span></div></div><span class="bx">${x.d}</span></div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>本周热销 TOP 5</h3></div>
+        <div class="panel-body" style="padding-top:8px;padding-bottom:8px">
+          ${ranks.map((r,i)=>`<div class="rank-item"><span class="rank-no">${i+1}</span><span class="rn">${r.n}</span><span class="rc">${r.c} 杯</span></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>待处理订单</h3><span class="more" onclick="go('order',document.querySelector('[data-page=order]'))">前往订单管理 →</span></div>
+      <div class="panel-body" style="padding:0">
+        <table><thead><tr><th style="padding-left:20px">取餐号</th><th>订单号</th><th>顾客</th><th>金额</th><th>状态</th><th style="text-align:right;padding-right:20px">操作</th></tr></thead>
+        <tbody>${orders.filter(o=>o.status==='wait'||o.status==='making').map(o=>`
+          <tr>
+            <td style="padding-left:20px"><b class="en" style="font-size:15px;color:var(--primary)">${o.no}</b></td>
+            <td><span class="oid">${o.id}</span></td>
+            <td><div class="ocust"><span class="oav">${o.av}</span><div><div class="on-name">${o.cust}</div></div></div></td>
+            <td><span class="price">${o.amount}</span></td>
+            <td>${obadge(o.status)}</td>
+            <td style="text-align:right;padding-right:20px"><span class="op-text" onclick="openOrder('${o.id}')">查看</span></td>
+          </tr>`).join('')}</tbody></table>
+      </div>
+    </div>`;
+}
+
+/* ===== 饮品分类 ===== */
+function renderCat(){
+  document.getElementById('content').innerHTML=`
+    <div class="page-head">
+      <div><h1>饮品分类</h1><p>管理饮品分类，支持排序、启用停用；停用后该分类饮品在用户端隐藏</p></div>
+      <button class="btn primary" onclick="openCat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新增分类</button>
+    </div>
+    <div class="cat-grid">
+      ${cats.map(c=>`
+        <div class="catc">
+          <span class="drag-handle" title="拖拽排序"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg></span>
+          <div class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${catIcons[c.icon]}</svg></div>
+          <div class="cmid"><div class="cname">${c.name}</div><div class="cmeta">${c.count} 款饮品 · ${c.on?'已启用':'已停用'}</div></div>
+          <div class="cops" style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+            <span class="toggle ${c.on?'on':''}" onclick="toggleCat(${c.id},this)"></span>
+            <div style="display:flex;gap:2px"><span class="op-text" onclick="openCat(${c.id})">编辑</span><span class="op-sep"></span><span class="op-text del" onclick="delCat(${c.id})">删除</span></div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <p class="note" style="margin-top:22px">共 ${cats.length} 个分类 · 拖拽左侧手柄可调整在用户端的展示顺序</p>`;
+}
+function toggleCat(id,el){const c=cats.find(x=>x.id===id);c.on=!c.on;el.classList.toggle('on');renderCat();toast(c.on?'已启用：'+c.name:'已停用：'+c.name)}
+function delCat(id){const c=cats.find(x=>x.id===id);if(c.count>0){toast('该分类下还有 '+c.count+' 款饮品，无法删除',true);return}if(confirm('确认删除分类「'+c.name+'」？')){cats=cats.filter(x=>x.id!==id);renderCat();toast('已删除')}}
+
+/* 分类抽屉 */
+let catEditId=null;
+function pickCatIcon(el){
+  document.querySelectorAll('#catIconPicker .cat-icon-opt').forEach(o=>o.classList.remove('picked'));
+  el.classList.add('picked');
+  document.getElementById('catIconVal').value=el.dataset.key;
+}
+function openCat(id){
+  catEditId=id||null;
+  // 动态生成图标选项
+  const picker=document.getElementById('catIconPicker');
+  picker.innerHTML=Object.keys(catIcons).map(k=>
+    `<div class="cat-icon-opt" data-key="${k}" onclick="pickCatIcon(this)" style="width:56px;height:56px;border-radius:var(--radius);border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;transition:.15s;color:var(--ink-2)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">${catIcons[k]}</svg>
+    </div>`
+  ).join('');
+  if(id){
+    const c=cats.find(x=>x.id===id);
+    document.getElementById('catTitle').textContent='编辑分类';
+    document.getElementById('catSub').textContent='修改「'+c.name+'」的名称、图标与排序';
+    catName.value=c.name;catSort.value=c.id;
+    document.getElementById('catStatus').classList.toggle('on',c.on);
+    document.getElementById('catIconVal').value=c.icon;
+    const opt=document.querySelector(`#catIconPicker [data-key="${c.icon}"]`);if(opt)opt.classList.add('picked');
+  }else{
+    document.getElementById('catTitle').textContent='新增分类';
+    document.getElementById('catSub').textContent='设置分类名称、图标与排序';
+    catName.value='';catSort.value='0';
+    document.getElementById('catStatus').classList.add('on');
+    document.getElementById('catIconVal').value='';
+  }
+  document.getElementById('catMask').classList.add('show');
+  document.getElementById('catDrawer').classList.add('show');
+}
+function closeCat(){document.getElementById('catMask').classList.remove('show');document.getElementById('catDrawer').classList.remove('show')}
+function saveCat(){
+  if(!catName.value.trim()){toast('请填写分类名称',true);return}
+  const icon=document.getElementById('catIconVal').value;
+  if(!icon){toast('请选择一个图标',true);return}
+  const on=document.getElementById('catStatus').classList.contains('on');
+  if(catEditId){
+    const c=cats.find(x=>x.id===catEditId);
+    Object.assign(c,{name:catName.value,icon,on});
+    renderCat();toast('已更新分类');
+  }else{
+    cats.push({id:Date.now(),name:catName.value,icon,count:0,on});
+    renderCat();toast('已新增分类');
+  }
+  closeCat();
+}
+
+/* ===== 订单管理 ===== */
+function renderOrder(){
+  const counts={all:orders.length};
+  Object.keys(oStatusMap).forEach(k=>counts[k]=orders.filter(o=>o.status===k).length);
+  const tabs=[['all','全部'],['wait','待接单'],['making','制作中'],['ready','待取餐'],['done','已完成'],['cancel','已取消']];
+  const list=oFilter==='all'?orders:orders.filter(o=>o.status===oFilter);
+  document.getElementById('content').innerHTML=`
+    <div class="page-head"><div><h1>订单管理</h1><p>查看与处理顾客订单，跟踪从下单到取餐的全流程状态</p></div>
+      <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>导出订单</button>
+    </div>
+    <div class="ostat-tabs">
+      ${tabs.map(([k,t])=>`<button class="${oFilter===k?'on':''}" onclick="setOFilter('${k}')">${t}<span class="cnt">${counts[k]}</span></button>`).join('')}
+    </div>
+    <div class="table-card">
+      <table>
+        <thead><tr><th style="width:70px">取餐号</th><th>订单号</th><th>顾客</th><th>商品</th><th>金额</th><th>取餐方式</th><th>状态</th><th>下单时间</th><th style="text-align:right">操作</th></tr></thead>
+        <tbody>${list.length?list.map(o=>{
+          const totalQty=o.items.reduce((s,i)=>s+i.qty,0);
+          const first=o.items.find(i=>i.qty>0)||o.items[0];
+          return `<tr>
+            <td><b class="en" style="font-size:15px;color:var(--primary)">${o.no}</b></td>
+            <td><span class="oid">${o.id}</span></td>
+            <td><div class="ocust"><span class="oav">${o.av}</span><div><div class="on-name">${o.cust}</div><div class="on-phone">${o.phone}</div></div></div></td>
+            <td><div class="oitems"><b>${first.n}</b>${totalQty>1?` 等 ${totalQty} 件`:''}</div></td>
+            <td><span class="price">${o.amount}</span></td>
+            <td><span style="font-size:13px;color:var(--ink-2)">${o.pickup}</span></td>
+            <td>${obadge(o.status)}</td>
+            <td><span class="mono" style="font-size:12.5px;color:var(--ink-3)">${o.time}</span></td>
+            <td><div class="ops">${oRowActions(o)}</div></td>
+          </tr>`}).join(''):`<tr><td colspan="9" style="text-align:center;padding:50px;color:var(--ink-3)">该状态下暂无订单</td></tr>`}
+        </tbody>
+      </table>
+      <div class="pager">
+        <div class="info">共 <b>${list.length}</b> 条</div>
+        <div class="sz">每页 <select><option>10 条</option><option>20 条</option></select></div>
+        <div class="pages"><button disabled>‹</button><button class="on">1</button><button disabled>›</button></div>
+      </div>
+    </div>`;
+}
+function oRowActions(o){
+  let a=`<span class="op-text" onclick="openOrder('${o.id}')">详情</span>`;
+  if(o.status==='wait')a+=`<span class="op-sep"></span><span class="op-text" onclick="advanceOrder('${o.id}')">接单</span>`;
+  else if(o.status==='making')a+=`<span class="op-sep"></span><span class="op-text" onclick="advanceOrder('${o.id}')">完成制作</span>`;
+  else if(o.status==='ready')a+=`<span class="op-sep"></span><span class="op-text" onclick="advanceOrder('${o.id}')">确认取餐</span>`;
+  return a;
+}
+function setOFilter(k){oFilter=k;renderOrder()}
+const oNext={wait:'making',making:'ready',ready:'done'};
+const oNextMsg={wait:'已接单，进入制作',making:'制作完成，待顾客取餐',ready:'订单已完成'};
+function advanceOrder(id){
+  const o=orders.find(x=>x.id===id);
+  const nx=oNext[o.status];
+  if(!nx)return;
+  const msg=oNextMsg[o.status];
+  o.status=nx;
+  renderOrder();
+  toast(msg);
+  if(document.getElementById('odMask').classList.contains('show'))openOrder(id);
+}
+
+/* 订单详情抽屉 */
+function openOrder(id){
+  const o=orders.find(x=>x.id===id);
+  const itemsHTML=o.items.filter(i=>i.qty>0).map(i=>`
+    <div class="od-line">
+      <div class="lthumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/></svg></div>
+      <div class="lmid"><div class="lname">${i.n}</div><div class="lspec">${i.spec}</div></div>
+      <div class="lqty">×${i.qty}</div>
+      <div class="lprice">¥${(i.p*i.qty).toFixed(2)}</div>
+    </div>`).join('');
+  // 状态时间线
+  const flow=['wait','making','ready','done'];
+  const labels={wait:'已下单 / 待接单',making:'已接单 / 制作中',ready:'制作完成 / 待取餐',done:'已完成'};
+  let curIdx=o.status==='cancel'?-1:flow.indexOf(o.status);
+  const stepsHTML=o.status==='cancel'
+    ? `<div class="od-step done"><span class="sdot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span><div class="stext"><div class="st">已下单</div><div class="stime mono">${o.time}</div></div></div>
+       <div class="od-step done"><span class="sdot" style="background:var(--off);border-color:var(--off)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span><div class="stext"><div class="st" style="color:var(--off)">订单已取消</div><div class="stime mono">${o.time}</div></div></div>`
+    : flow.map((s,i)=>`<div class="od-step ${i<=curIdx?'done':''}"><span class="sdot">${i<=curIdx?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>':(i+1)}</span><div class="stext"><div class="st">${labels[s]}</div>${i<=curIdx?`<div class="stime mono">${o.time}</div>`:''}</div></div>`).join('');
+
+  document.getElementById('odTitle').textContent='订单详情';
+  document.getElementById('odSub').innerHTML=`<span class="oid">${o.id}</span>`;
+  document.getElementById('odBody').innerHTML=`
+    <div class="od-sec"><h4>当前状态</h4>
+      <div style="display:flex;align-items:center;gap:12px">${obadge(o.status)}<span style="font-size:14px;color:var(--ink-2)">取餐号 <b class="en" style="color:var(--primary)">${o.no}</b></span></div>
+    </div>
+    <div class="od-sec"><h4>顾客信息</h4>
+      <div class="od-card">
+        <div class="od-info-row"><span class="k">顾客</span><span class="v">${o.cust}</span></div>
+        <div class="od-info-row"><span class="k">联系电话</span><span class="v mono">${o.phone}</span></div>
+        <div class="od-info-row"><span class="k">取餐方式</span><span class="v">${o.pickup}</span></div>
+      </div>
+    </div>
+    <div class="od-sec"><h4>商品明细</h4>
+      <div class="od-card">
+        ${itemsHTML}
+        <div class="od-total"><span class="tl">合计</span><span class="tv">¥${o.amount}</span></div>
+      </div>
+    </div>
+    <div class="od-sec"><h4>订单进度</h4>
+      <div class="od-steps">${stepsHTML}</div>
+    </div>`;
+  // footer 操作按钮
+  let foot='';
+  if(o.status==='wait')foot=`<button class="btn ghost" onclick="cancelOrder('${o.id}')">拒单</button><button class="btn primary" onclick="advanceOrder('${o.id}')">接单</button>`;
+  else if(o.status==='making')foot=`<button class="btn primary" onclick="advanceOrder('${o.id}')">完成制作</button>`;
+  else if(o.status==='ready')foot=`<button class="btn primary" onclick="advanceOrder('${o.id}')">确认取餐</button>`;
+  else foot=`<button class="btn ghost" onclick="closeOrder()">关闭</button>`;
+  document.getElementById('odFoot').innerHTML=foot;
+  document.getElementById('odMask').classList.add('show');
+  document.getElementById('odDrawer').classList.add('show');
+}
+function closeOrder(){document.getElementById('odMask').classList.remove('show');document.getElementById('odDrawer').classList.remove('show')}
+function cancelOrder(id){const o=orders.find(x=>x.id===id);if(confirm('确认拒单？')){o.status='cancel';renderOrder();closeOrder();toast('已拒单',true)}}
+
+/* ===== 员工管理 ===== */
+function renderStaff(){
+  const roleCounts={};
+  staffs.forEach(s=>{roleCounts[s.role]=(roleCounts[s.role]||0)+1});
+  const tabs=[['all','全部'],...staffRoles.map(r=>[r,r])];
+  const list=staffFilter==='all'?staffs:staffs.filter(s=>s.role===staffFilter);
+  document.getElementById('content').innerHTML=`
+    <div class="page-head"><div><h1>员工管理</h1><p>管理门店员工账号，新增岗位与权限控制</p></div>
+      <button class="btn primary" onclick="openStaff()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新增员工</button>
+    </div>
+    <div class="ostat-tabs" style="margin-bottom:18px">
+      ${tabs.map(([k,t])=>`<button class="${staffFilter===k?'on':''}" onclick="setStaffFilter('${k}')">${t}<span class="cnt">${k==='all'?staffs.length:(roleCounts[k]||0)}</span></button>`).join('')}
+    </div>
+    <div class="table-card">
+      <table>
+        <thead><tr>
+          <th>员工</th><th>登录账号</th><th>手机号</th><th>岗位</th><th>状态</th><th>备注</th><th>创建时间</th><th style="text-align:right">操作</th>
+        </tr></thead>
+        <tbody>${list.length?list.map(s=>`
+          <tr>
+            <td><div class="dname"><div class="thumb c${s.id%4}" style="width:40px;height:40px"><div class="ph" style="font-size:16px;font-weight:600;color:var(--primary)">${s.name.charAt(0)}</div></div><div><div class="t">${s.name}</div></div></div></td>
+            <td><span class="mono" style="font-size:13px;color:var(--ink-2)">${s.account}</span></td>
+            <td><span class="mono" style="font-size:13px;color:var(--ink-2)">${s.phone}</span></td>
+            <td><span class="cat-pill">${s.role}</span></td>
+            <td><span class="st-wrap"><span class="toggle ${s.on?'on':''}" onclick="toggleStaff(${s.id},this)"></span><span class="txt">${s.on?'启用':'停用'}</span></span></td>
+            <td><span style="font-size:13px;color:var(--ink-3);max-width:180px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.note||'-'}</span></td>
+            <td><span class="mono" style="font-size:12.5px;color:var(--ink-3)">${s.t}</span></td>
+            <td><div class="ops"><span class="op-text" onclick="openStaff(${s.id})">编辑</span><span class="op-sep"></span><span class="op-text del" onclick="delStaff(${s.id})">删除</span></div></td>
+          </tr>`).join(''):`<tr><td colspan="8" style="text-align:center;padding:50px;color:var(--ink-3)">该岗位暂无员工</td></tr>`}
+        </tbody>
+      </table>
+      <div class="pager">
+        <div class="info">共 <b>${list.length}</b> 条</div>
+        <div class="sz">每页 <select><option>10 条</option><option>20 条</option></select></div>
+        <div class="pages"><button disabled>‹</button><button class="on">1</button><button disabled>›</button></div>
+      </div>
+    </div>`;
+}
+function setStaffFilter(k){staffFilter=k;renderStaff()}
+function toggleStaff(id,el){const s=staffs.find(x=>x.id===id);s.on=!s.on;el.classList.toggle('on');el.nextElementSibling.textContent=s.on?'启用':'停用';toast(s.on?'已启用：'+s.name:'已停用：'+s.name)}
+function delStaff(id){const s=staffs.find(x=>x.id===id);if(s.role==='店长'){toast('店长账号不可删除',true);return}if(confirm('确认删除员工「'+s.name+'」？')){staffs=staffs.filter(x=>x.id!==id);renderStaff();toast('已删除')}}
+
+/* 员工抽屉 */
+let sfEditId=null;
+function openStaff(id){
+  sfEditId=id||null;
+  if(id){
+    const s=staffs.find(x=>x.id===id);
+    document.getElementById('sfTitle').textContent='编辑员工';
+    document.getElementById('sfSub').textContent='修改「'+s.name+'」的信息与岗位';
+    sfName.value=s.name;sfAccount.value=s.account;sfPhone.value=s.phone;sfRole.value=s.role;sfNote.value=s.note||'';
+    document.getElementById('sfStatus').classList.toggle('on',s.on);
+  }else{
+    document.getElementById('sfTitle').textContent='新增员工';
+    document.getElementById('sfSub').textContent='填写员工基本信息与岗位';
+    sfName.value='';sfAccount.value='';sfPhone.value='';sfRole.value='';sfNote.value='';
+    document.getElementById('sfStatus').classList.add('on');
+  }
+  document.getElementById('sfMask').classList.add('show');
+  document.getElementById('sfDrawer').classList.add('show');
+}
+function closeStaff(){document.getElementById('sfMask').classList.remove('show');document.getElementById('sfDrawer').classList.remove('show')}
+function saveStaff(){
+  if(!sfName.value.trim()){toast('请填写员工姓名',true);return}
+  if(!sfAccount.value.trim()){toast('请填写登录账号',true);return}
+  if(!sfPhone.value.trim()){toast('请填写手机号',true);return}
+  if(!sfRole.value){toast('请选择岗位',true);return}
+  const on=document.getElementById('sfStatus').classList.contains('on');
+  const now='2026-06-05 10:30';
+  if(sfEditId){
+    const s=staffs.find(x=>x.id===sfEditId);
+    Object.assign(s,{name:sfName.value,account:sfAccount.value,phone:sfPhone.value,role:sfRole.value,on,note:sfNote.value,t:now});
+  }else{
+    staffs.unshift({id:Date.now(),name:sfName.value,account:sfAccount.value,phone:sfPhone.value,role:sfRole.value,on,note:sfNote.value,t:now});
+  }
+  closeStaff();renderStaff();toast(sfEditId?'已更新员工':'已新增员工');
+}
+
+function renderDrink(){
+  document.getElementById('content').innerHTML=`
+    <div class="page-head">
+      <div><h1>饮品管理</h1><p>维护门店在售饮品，支持分类筛选、起售停售与口味设置</p></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>导出</button>
+        <button class="btn primary" onclick="openDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新增饮品</button>
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="cat-tabs">
+        <span class="ct on">全部</span><span class="ct">奶茶</span><span class="ct">咖啡</span><span class="ct">鲜果茶</span><span class="ct">气泡饮</span><span class="ct">小食甜点</span>
+      </div>
+      <div class="filter-row">
+        <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="饮品名称"></div>
+        <div class="seg"><button class="on">全部状态</button><button>起售</button><button>停售</button></div>
+        <span class="sp"></span>
+        <button class="btn">重置</button><button class="btn primary">查询</button>
+      </div>
+    </div>
+    <div class="bulk"><span>已选 <b>0</b> 项</span><div class="acts"><button>批量起售</button><button>批量停售</button><button>批量删除</button></div></div>
+    <div class="table-card">
+      <table>
+        <thead><tr>
+          <th style="width:46px"><span class="ck">${checkSvg}</span></th>
+          <th>饮品</th><th>分类</th><th>价格</th><th>口味规格</th><th>状态</th><th>更新时间</th><th style="text-align:right">操作</th>
+        </tr></thead>
+        <tbody>${drinks.map((r,i)=>`
+          <tr>
+            <td><span class="ck" onclick="this.classList.toggle('on')">${checkSvg}</span></td>
+            <td><div class="dname"><div class="thumb c${i%4}"><div class="ph">${cupSvg}</div></div><div><div class="t">${r.n}</div><div class="d">${r.d}</div></div></div></td>
+            <td><span class="cat-pill">${r.c}</span></td>
+            <td><span class="price">${r.p}</span></td>
+            <td><div class="flavors">${flavorTags(r.f).map(x=>`<span class="tag">${x}</span>`).join('')}</div></td>
+            <td><span class="st-wrap"><span class="toggle ${r.on?'on':''}" onclick="toggleStatus(${r.id},this)"></span><span class="txt">${r.on?'起售':'停售'}</span></span></td>
+            <td><span class="mono" style="font-size:12.5px;color:var(--ink-3)">${r.t}</span></td>
+            <td><div class="ops"><span class="op-text" onclick="openDrawer(${r.id})">编辑</span><span class="op-sep"></span><span class="op-text del" onclick="delDrink(${r.id})">删除</span></div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="pager">
+        <div class="info">共 <b>${drinks.length}</b> 条 · 第 <b>1</b>/<b>1</b> 页</div>
+        <div class="sz">每页 <select><option>10 条</option><option>20 条</option><option>50 条</option></select></div>
+        <div class="pages"><button disabled>‹</button><button class="on">1</button><button disabled>›</button></div>
+      </div>
+    </div>`;
+}
+
+/* ===== 状态开关 / 删除 ===== */
+function toggleStatus(id,el){
+  const d=drinks.find(x=>x.id===id);d.on=!d.on;el.classList.toggle('on');
+  el.nextElementSibling.textContent=d.on?'起售':'停售';
+  toast(d.on?'已起售：'+d.n:'已停售：'+d.n);
+}
+function delDrink(id){const d=drinks.find(x=>x.id===id);if(confirm('确认删除「'+d.n+'」？')){drinks=drinks.filter(x=>x.id!==id);renderDrink();toast('已删除')}}
+
+/* ===== 抽屉：新增/编辑 ===== */
+let editId=null;
+function openDrawer(id){
+  editId=id||null;
+  const list=document.getElementById('flavorList');list.innerHTML='';
+  if(id){
+    const d=drinks.find(x=>x.id===id);
+    document.getElementById('dwrTitle').textContent='编辑饮品';
+    document.getElementById('dwrSub').textContent='修改「'+d.n+'」的信息与口味';
+    fName.value=d.n;fCat.value=d.c;fPrice.value=d.p;fDesc.value=d.d;
+    document.getElementById('fStatus').classList.toggle('on',d.on);
+    // 口味回显：每个口味维度生成一行（各行独立，互不干扰）
+    if(d.f.length)d.f.forEach(g=>addFlavor(g.name,g.values));else addFlavor();
+  }else{
+    document.getElementById('dwrTitle').textContent='新增饮品';
+    document.getElementById('dwrSub').textContent='填写饮品基本信息与口味规格';
+    fName.value='';fCat.value='';fPrice.value='';fDesc.value='';
+    document.getElementById('fStatus').classList.add('on');
+    addFlavor();
+  }
+  showImg();
+  document.getElementById('mask').classList.add('show');
+  document.getElementById('drawer').classList.add('show');
+}
+function closeDrawer(){document.getElementById('mask').classList.remove('show');document.getElementById('drawer').classList.remove('show')}
+function addFlavor(name='',values=[]){
+  const row=document.createElement('div');row.className='flavor-row';
+  row.innerHTML=`
+    <input class="inp2 fn" placeholder="口味名" value="${name}">
+    <div class="tag-input" onclick="this.querySelector('.vadd').focus()">
+      ${values.map(v=>vtagHTML(v)).join('')}
+      <input class="vadd" placeholder="输入值后回车" onkeydown="onValueKey(event,this)">
+    </div>
+    <button class="del-f" onclick="this.parentNode.remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>`;
+  document.getElementById('flavorList').appendChild(row);
+}
+function vtagHTML(v){return `<span class="vtag">${v}<i onclick="this.parentNode.remove()">×</i></span>`}
+function onValueKey(e,inp){
+  if((e.key==='Enter'||e.key===',')&&inp.value.trim()){
+    e.preventDefault();
+    inp.insertAdjacentHTML('beforebegin',vtagHTML(inp.value.trim()));
+    inp.value='';
+  }else if(e.key==='Backspace'&&!inp.value){
+    const tags=inp.parentNode.querySelectorAll('.vtag');
+    if(tags.length)tags[tags.length-1].remove();
+  }
+}
+function addImg(){document.getElementById('upBox').classList.add('hide');document.getElementById('upPreview').classList.remove('hide')}
+function rmImg(){document.getElementById('upPreview').classList.add('hide');document.getElementById('upBox').classList.remove('hide')}
+function showImg(){document.getElementById('upBox').classList.add('hide');document.getElementById('upPreview').classList.remove('hide')}
+function saveDrink(){
+  if(!fName.value.trim()){toast('请填写饮品名称',true);return}
+  if(!fCat.value){toast('请选择分类',true);return}
+  if(!fPrice.value.trim()){toast('请填写售价',true);return}
+  const on=document.getElementById('fStatus').classList.contains('on');
+  // 按行收集口味：每行 = 一个 {name, values[]}，各行独立，互不合并
+  const flavors=[...document.querySelectorAll('#flavorList .flavor-row')].map(row=>{
+    const name=row.querySelector('.fn').value.trim();
+    const values=[...row.querySelectorAll('.vtag')].map(t=>t.firstChild.textContent.trim()).filter(Boolean);
+    // 兜底：用户打了字但没回车，也算进去
+    const pending=row.querySelector('.vadd').value.trim();
+    if(pending)values.push(pending);
+    return {name,values};
+  }).filter(g=>g.name&&g.values.length);
+  const now='2026-06-05 10:30';
+  if(editId){
+    const d=drinks.find(x=>x.id===editId);
+    Object.assign(d,{n:fName.value,c:fCat.value,p:(+fPrice.value||0).toFixed(2),d:fDesc.value,on,f:flavors,t:now});
+  }else{
+    drinks.unshift({id:Date.now(),n:fName.value,c:fCat.value,p:(+fPrice.value||0).toFixed(2),d:fDesc.value,on,f:flavors,t:now});
+  }
+  closeDrawer();renderDrink();toast(editId?'已更新饮品':'已新增饮品');
+}
+
+/* ===== toast ===== */
+let toastT;
+function toast(msg,warn){
+  const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;
+  t.querySelector('svg').style.color=warn?'var(--warn)':'var(--ok)';
+  t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1900);
+}
+</script>
+</body>
+</html>

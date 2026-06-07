@@ -13,7 +13,7 @@ const loginForm = ref({
   account: savedAccount,
   password: ''
 })
-const rememberMe = ref(!!savedAccount)  // 有保存的账号则默认勾选
+const rememberMe = ref(!!savedAccount)
 const loading = ref(false)
 
 async function handleLogin() {
@@ -31,14 +31,11 @@ async function handleLogin() {
       account: res.data.account,
       role: res.data.role
     }))
-
-    // 记住我：保存或清除账号
     if (rememberMe.value) {
       localStorage.setItem('remembered_account', loginForm.value.account)
     } else {
       localStorage.removeItem('remembered_account')
     }
-
     ElMessage.success('登录成功')
     router.push('/dashboard')
   } catch (e) {
@@ -59,13 +56,13 @@ async function handleLogin() {
           <div class="brand-logo">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/><path d="M12 14v8"/></svg>
           </div>
-          <b class="brand-name">茶优选</b>
+          <b class="brand-name">茶咖优选</b>
         </div>
         <div class="brand-pitch">
           <h2>饮品店订购系统<br>管理后台</h2>
           <p>统一管理门店饮品、分类与订单，让每一杯都准时、对味地送到顾客手中。</p>
         </div>
-        <div class="brand-foot">© 2026 茶优选 · 餐饮管理平台 · 内部员工专用</div>
+        <div class="brand-foot">© 2026 茶咖优选 · 餐饮管理平台 · 内部员工专用</div>
       </div>
     </div>
 
@@ -103,7 +100,7 @@ async function handleLogin() {
             </el-input>
           </div>
 
-          <div class="form-options">
+          <div class="lrow">
             <el-checkbox v-model="rememberMe">记住我</el-checkbox>
             <a href="javascript:;" class="forgot-link">忘记密码？</a>
           </div>
@@ -113,7 +110,7 @@ async function handleLogin() {
               type="primary"
               size="large"
               :loading="loading"
-              style="width: 100%"
+              class="login-btn"
               @click="handleLogin"
             >
               登 录
@@ -136,7 +133,7 @@ async function handleLogin() {
   z-index: 100;
 }
 
-/* 左侧品牌区 */
+/* 左侧品牌区 — 与原型一致 */
 .login-brand {
   width: 46%;
   background: var(--side-bg);
@@ -191,7 +188,7 @@ async function handleLogin() {
 }
 
 .brand-name {
-  font-family: var(--font-en), sans-serif;
+  font-family: var(--font-en);
   font-size: 21px;
   letter-spacing: 0.01em;
 }
@@ -256,32 +253,23 @@ async function handleLogin() {
   font-weight: 500;
 }
 
-.form-options {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 13px;
-  margin-bottom: 26px;
+/* Element Plus 输入框覆盖 — 匹配原型 .inp 样式 */
+:deep(.el-input__wrapper) {
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  box-shadow: 0 0 0 1px var(--line-strong) inset;
+  background: var(--surface);
+  transition: 0.15s;
 }
 
-.forgot-link {
-  color: var(--primary);
-  text-decoration: none;
-  font-size: 13px;
+:deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--ink-3) inset;
 }
 
-.forgot-link:hover {
-  text-decoration: underline;
+:deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px var(--primary) inset, 0 0 0 3px var(--primary-weak);
 }
 
-.demo-hint {
-  margin-top: 18px;
-  text-align: center;
-  font-size: 12px;
-  color: var(--ink-3);
-}
-
-/* 输入框内图标样式 */
 :deep(.el-input__prefix) {
   display: flex;
   align-items: center;
@@ -293,14 +281,75 @@ async function handleLogin() {
   color: var(--ink-3);
 }
 
-:deep(.el-input__wrapper) {
-  border-radius: var(--radius);
-  padding: 12px 14px;
+:deep(.el-input__inner) {
+  font-family: var(--font-cn);
+  font-size: 14px;
+  color: var(--ink);
 }
 
-/* 消除 el-form-item 额外间距，由 .lf 控制 */
+:deep(.el-input__inner::placeholder) {
+  color: var(--ink-3);
+}
+
+/* 记住我行 */
+.lrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 26px;
+}
+
+:deep(.el-checkbox__label) {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+:deep(.el-checkbox__inner) {
+  border-radius: 4px;
+  border-color: var(--line-strong);
+}
+
+:deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+:deep(.el-checkbox__input.is-checked .el-checkbox__inner::after) {
+  border-color: #fff;
+}
+
+.forgot-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+/* 登录按钮 — 匹配原型 .lbtn 样式 */
+.login-btn {
+  width: 100%;
+  height: auto;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: 0;
+}
+
 :deep(.el-form-item) {
   margin-bottom: 0;
+}
+
+.demo-hint {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-3);
 }
 
 /* 响应式：小屏幕隐藏品牌区 */

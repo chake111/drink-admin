@@ -85,3 +85,107 @@ body {
   --el-tag-text-color: var(--off);
   --el-tag-border-color: var(--off-weak);
 }
+
+/* Element Plus Drawer 主题覆盖 — 与原型抽屉一致 */
+.el-drawer__header {
+  padding: 22px 26px;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.el-drawer__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.el-drawer__body {
+  padding: 24px 26px;
+  background: var(--bg);
+}
+
+.el-drawer__footer {
+  padding: 16px 26px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.el-overlay {
+  background: rgba(40, 28, 20, 0.42);
+  backdrop-filter: blur(2px);
+}
+
+.el-drawer {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Element Plus 表格主题覆盖 */
+.el-table {
+  --el-table-border-color: var(--line);
+  --el-table-header-bg-color: var(--surface-2);
+  --el-table-header-text-color: var(--ink-3);
+  --el-table-text-color: var(--ink);
+  --el-table-row-hover-bg-color: var(--surface-2);
+}
+
+.el-table th.el-table__cell {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.el-table td.el-table__cell {
+  font-size: 13.5px;
+  vertical-align: middle;
+}
+
+/* Element Plus 输入框主题覆盖 */
+.el-input__wrapper {
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 1px var(--line-strong) inset;
+}
+
+.el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--ink-3) inset;
+}
+
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--primary) inset, 0 0 0 3px var(--primary-weak);
+}
+
+/* Element Plus 按钮主题覆盖 */
+.el-button {
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.el-button--default {
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+
+.el-button--default:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Element Plus Pagination 主题覆盖 */
+.el-pagination button {
+  border-radius: var(--radius-sm);
+}
+
+.el-pager li {
+  border-radius: var(--radius-sm);
+  min-width: 34px;
+  height: 34px;
+}
+
+.el-pager li.is-active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}

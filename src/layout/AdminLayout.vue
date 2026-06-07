@@ -70,7 +70,7 @@ function handleLogout() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/><path d="M12 14v8"/></svg>
         </div>
         <div class="brand-text">
-          <span class="brand-name">茶优选</span>
+          <span class="brand-name">茶咖优选</span>
           <span class="brand-sub">餐饮管理后台</span>
         </div>
       </div>
@@ -118,8 +118,11 @@ function handleLogout() {
           </span>
         </div>
         <div class="search-pill">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-          <input v-model="searchQuery" placeholder="搜索…">
+          <el-input v-model="searchQuery" placeholder="搜索…" clearable>
+            <template #prefix>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            </template>
+          </el-input>
         </div>
         <div class="topbar-right">
           <div class="icon-btn" title="通知">
@@ -303,34 +306,43 @@ function handleLogout() {
 
 .search-pill {
   margin-left: 14px;
+  width: 240px;
+}
+
+/* 覆盖 el-input 为原型胶囊搜索框样式 */
+:deep(.search-pill .el-input__wrapper) {
+  border-radius: 999px;
+  background: var(--surface-2);
+  box-shadow: 0 0 0 1px var(--line) inset;
+  padding: 8px 14px;
+}
+
+:deep(.search-pill .el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--line-strong) inset;
+}
+
+:deep(.search-pill .el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px var(--primary) inset;
+}
+
+:deep(.search-pill .el-input__prefix) {
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 240px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 8px 14px;
+}
+
+:deep(.search-pill .el-input__prefix svg) {
+  width: 15px;
+  height: 15px;
   color: var(--ink-3);
 }
 
-.search-pill svg {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-}
-
-.search-pill input {
-  border: 0;
-  background: transparent;
-  outline: 0;
+:deep(.search-pill .el-input__inner) {
   font-family: var(--font-cn);
   font-size: 13px;
   color: var(--ink);
-  width: 100%;
 }
 
-.search-pill input::placeholder {
+:deep(.search-pill .el-input__inner::placeholder) {
   color: var(--ink-3);
 }
 
@@ -350,6 +362,7 @@ function handleLogout() {
   color: var(--ink-2);
   cursor: pointer;
   position: relative;
+  transition: background-color 0.15s;
 }
 
 .icon-btn:hover {

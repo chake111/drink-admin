@@ -17,6 +17,9 @@ const todayData = ref({
   completedChange: 0  // 已完成环比变化
 })
 
+// 待处理订单
+const pendingOrders = ref([])
+
 // 客单价 = 营业额 / 订单数
 const avgOrderDisplay = computed(() => {
   if (!todayData.value.todayOrders) return '0.00'
@@ -26,6 +29,22 @@ const avgOrderDisplay = computed(() => {
 const trendData = ref([])
 const topData = ref([])
 const hasTrendData = computed(() => trendData.value.length > 0)
+
+// 订单状态映射
+const statusMap = {
+  1: { label: '待接单', cls: 'ob-wait' },
+  2: { label: '制作中', cls: 'ob-making' },
+  3: { label: '待取餐', cls: 'ob-ready' },
+  4: { label: '已完成', cls: 'ob-done' },
+  5: { label: '已取消', cls: 'ob-cancel' }
+}
+
+// 待处理订单数 = 待接单 + 制作中（与原型一致）
+const pendingDisplay = computed(() => {
+  const p = todayData.value.pendingOrders
+  if (p > 0) return p
+  return (todayData.value.waitingOrders || 0) + (todayData.value.makingOrders || 0)
+})
 
 // 监听数据变化，动态渲染图表
 watch(trendData, async (newVal) => {
@@ -181,6 +200,14 @@ onMounted(async () => {
     console.error('获取工作台数据失败:', e)
   }
 
+  // 待处理订单独立请求，后端可能未实现该接口
+  try {
+    const pendingRes = await request.get('/dashboard/pending')
+    pendingOrders.value = pendingRes.data || []
+  } catch (e) {
+    pendingOrders.value = []
+  }
+
   await nextTick()
   if (hasTrendData.value) {
     renderTrendChart()
@@ -239,8 +266,8 @@ onBeforeUnmount(() => {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
         </div>
         <div class="kpi-label">待处理订单</div>
-        <div class="kpi-value">{{ todayData.pendingOrders }}</div>
-        <div class="kpi-delta down" v-if="todayData.pendingOrders > 0">
+        <div class="kpi-value">{{ pendingDisplay }}</div>
+        <div class="kpi-delta down">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7 17 17M17 7v10H7"/></svg>
           待接单 {{ todayData.waitingOrders }} · 制作中 {{ todayData.makingOrders }}
         </div>
@@ -281,6 +308,52 @@ onBeforeUnmount(() => {
           <div v-if="topData.length === 0" class="empty-tip">暂无数据</div>
         </div>
       </div>
+    </div>
+
+    <!-- 待处理订单 — 与原型一致 -->
+    <div class="pending-panel">
+      <div class="panel-head">
+        <h3>待处理订单</h3>
+        <router-link to="/order" class="panel-link">前往订单管理 →</router-link>
+      </div>
+      <el-table :data="pendingOrders" v-if="pendingOrders.length > 0" class="pending-table">
+        <el-table-column label="取餐号" width="90">
+          <template #default="{ row }">
+            <b class="pickup-no">{{ row.pickupNo }}</b>
+          </template>
+        </el-table-column>
+        <el-table-column label="订单号" width="160">
+          <template #default="{ row }">
+            <span class="order-id">{{ row.orderNo }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="顾客" min-width="140">
+          <template #default="{ row }">
+            <div class="cust-cell">
+              <span class="cust-av">{{ (row.userName || '?').charAt(0) }}</span>
+              <div class="cust-name">{{ row.userName || '-' }}</div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="金额" width="100">
+          <template #default="{ row }">
+            <span class="price">¥{{ row.amount?.toFixed(2) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" width="110">
+          <template #default="{ row }">
+            <span class="obadge" :class="statusMap[row.status]?.cls">
+              <i></i>{{ statusMap[row.status]?.label }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="80" align="right">
+          <template #default="{ row }">
+            <router-link :to="{ path: '/order', query: { highlight: row.id } }" class="op-link">查看</router-link>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div v-else class="pending-empty">暂无待处理订单</div>
     </div>
   </div>
 </template>
@@ -514,5 +587,121 @@ onBeforeUnmount(() => {
     align-items: flex-start;
     gap: 12px;
   }
+}
+
+/* 待处理订单面板 — 与原型一致 */
+.pending-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-top: 18px;
+}
+
+.panel-head {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+}
+
+.panel-head h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.panel-link {
+  margin-left: auto;
+  font-size: 12.5px;
+  color: var(--primary);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.panel-link:hover {
+  text-decoration: underline;
+}
+
+.pickup-no {
+  font-family: var(--font-en);
+  font-size: 15px;
+  color: var(--primary);
+}
+
+.order-id {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.cust-cell {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.cust-av {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-weak);
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.cust-name {
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+/* 订单状态徽章 */
+.obadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.obadge i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  font-style: normal;
+}
+
+.ob-wait { background: var(--warn-weak); color: var(--warn); }
+.ob-making { background: #E4ECF5; color: #4B79A8; }
+.ob-ready { background: var(--ok-weak); color: var(--ok); }
+.ob-done { background: var(--surface-2); color: var(--ink-3); }
+.ob-cancel { background: var(--off-weak); color: var(--off); }
+
+.op-link {
+  font-size: 13px;
+  color: var(--primary);
+  cursor: pointer;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 5px;
+}
+
+.op-link:hover {
+  background: var(--primary-weak);
+}
+
+.pending-empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--ink-3);
+  font-size: 14px;
 }
 </style>
