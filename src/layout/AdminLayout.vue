@@ -1,11 +1,13 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { usePendingOrders } from '../composables/usePendingOrders'
 
 const router = useRouter()
 const route = useRoute()
 
 const isCollapse = ref(false)
+const { pendingCount } = usePendingOrders()
 
 // 搜索
 const showSearch = ref(false)
@@ -109,6 +111,10 @@ function handleLogout() {
               <svg v-else-if="item.icon === 'employee'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
             </span>
             <span v-show="!isCollapse" class="menu-text">{{ item.title }}</span>
+            <span v-if="item.path === '/order' && pendingCount > 0" class="menu-badge">
+              <span class="menu-badge-dot"></span>
+              <span v-show="!isCollapse" class="menu-badge-count">{{ pendingCount }}</span>
+            </span>
           </div>
         </div>
       </nav>
@@ -584,5 +590,35 @@ function handleLogout() {
   flex: 1;
   overflow-y: auto;
   padding: 24px 26px 40px;
+}
+
+/* 菜单 badge */
+.menu-badge {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.menu-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--el-color-danger);
+  animation: badge-pulse 1.5s ease-in-out infinite;
+}
+
+.menu-badge-count {
+  font-family: var(--font-en);
+  font-size: 11px;
+  background: var(--primary);
+  color: #fff;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 </style>
