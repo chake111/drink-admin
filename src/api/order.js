@@ -23,3 +23,7 @@ export function pickupOrder(id) {
 export function rejectOrder(id, reason) {
   return request({ url: `/order/reject/${id}`, method: 'post', data: { rejectReason: reason } })
 }
+
+export function getPendingCount() {
+  return request({ url: '/order/pending-count', method: 'get' })
+}
