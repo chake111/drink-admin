@@ -255,7 +255,8 @@ function setRoleFilter(role) {
   color: #fff;
 }
 
-.table-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
+.table-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow-x: auto; }
+.table-card :deep(.el-table) { min-width: 700px; }
 
 .emp-name { display: flex; align-items: center; gap: 10px; }
 .emp-avatar {

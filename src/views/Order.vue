@@ -309,7 +309,8 @@ async function handleDetail(row) {
 .status-tab:hover { color: var(--primary); }
 .status-tab.active { background: var(--primary-weak); color: var(--primary); font-weight: 600; }
 .filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.table-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
+.table-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow-x: auto; }
+.table-card :deep(.el-table) { min-width: 860px; }
 .price { font-family: var(--font-mono); font-weight: 600; color: var(--primary); }
 
 /* 订单状态徽章 — 与原型 .obadge 一致 */

@@ -86,7 +86,9 @@ async function handleDelete(row) {
     await request.delete(`/category/${row.id}`)
     ElMessage.success('已删除')
     loadData()
-  } catch (e) {}
+  } catch (e) {
+    if (e !== 'cancel' && e?.message) ElMessage.error(e.message)
+  }
 }
 
 async function handleDragEnd() {
@@ -182,7 +184,7 @@ async function handleDragEnd() {
         </el-form-item>
         <el-form-item label="状态">
           <div class="switch-field">
-            <div class="switch-text">启用<small>停用后该分类在用户端隐藏</small></div>
+            <div class="switch-text">启用</div>
             <span class="toggle" :class="{ on: form.status === 1 }" @click="form.status = form.status === 1 ? 0 : 1"></span>
           </div>
         </el-form-item>

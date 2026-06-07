@@ -106,14 +106,18 @@ async function handleSubmit() {
     }
     drawerVisible.value = false
     loadData()
-  } catch (e) { }
+  } catch (e) {
+    if (e?.message && !e.message.includes('validate')) ElMessage.error(e.message)
+  }
 }
 
 async function handleStatusChange(id, status) {
   try {
     await request.post(`/drink/status/${status}`, null, { params: { ids: String(id) } })
     loadData()
-  } catch (e) { }
+  } catch (e) {
+    if (e?.message) ElMessage.error(e.message)
+  }
 }
 
 async function handleDelete(id) {
@@ -122,7 +126,9 @@ async function handleDelete(id) {
     await request.delete('/drink', { params: { ids: String(id) } })
     ElMessage.success('删除成功')
     loadData()
-  } catch (e) { }
+  } catch (e) {
+    if (e !== 'cancel' && e?.message) ElMessage.error(e.message)
+  }
 }
 
 async function handleBatchStatus(status) {
@@ -130,7 +136,9 @@ async function handleBatchStatus(status) {
   try {
     await request.post(`/drink/status/${status}`, null, { params: { ids: selectedIds.value.join(',') } })
     loadData()
-  } catch (e) { }
+  } catch (e) {
+    if (e?.message) ElMessage.error(e.message)
+  }
 }
 
 async function handleBatchDelete() {
@@ -140,7 +148,9 @@ async function handleBatchDelete() {
     await request.delete('/drink', { params: { ids: selectedIds.value.join(',') } })
     ElMessage.success('删除成功')
     loadData()
-  } catch (e) { }
+  } catch (e) {
+    if (e !== 'cancel' && e?.message) ElMessage.error(e.message)
+  }
 }
 </script>
 
@@ -403,7 +413,11 @@ async function handleBatchDelete() {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
-  overflow: hidden;
+  overflow-x: auto;
+}
+
+.table-card :deep(.el-table) {
+  min-width: 860px;
 }
 
 .drink-info {
@@ -433,6 +447,10 @@ async function handleBatchDelete() {
 .drink-name {
   font-weight: 600;
   font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 
 .drink-desc {
@@ -503,6 +521,7 @@ async function handleBatchDelete() {
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 5px;
+  white-space: nowrap;
 }
 
 .op-text:hover {
