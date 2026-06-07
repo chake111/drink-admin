@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '../api/request.js'
 import ImageUpload from '../components/ImageUpload.vue'
+import { formatTime } from '../utils/format.js'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -207,7 +208,9 @@ async function handleBatchDelete() {
             <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">{{ row.status === 1 ? '起售' : '停售' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="更新时间" prop="updateTime" width="160" />
+        <el-table-column label="更新时间" width="160">
+          <template #default="{ row }">{{ formatTime(row.updateTime) }}</template>
+        </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>

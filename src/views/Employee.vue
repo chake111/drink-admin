@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '../api/request.js'
+import { formatTime } from '../utils/format.js'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -116,7 +117,9 @@ async function handleDelete(row) {
           </template>
         </el-table-column>
         <el-table-column label="备注" prop="note" min-width="150" show-overflow-tooltip />
-        <el-table-column label="创建时间" prop="createTime" width="180" />
+        <el-table-column label="创建时间" width="180">
+          <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+        </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>

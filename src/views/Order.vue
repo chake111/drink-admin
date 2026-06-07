@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '../api/request.js'
+import { formatTime } from '../utils/format.js'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -160,7 +161,9 @@ async function handleDetail(row) {
         </el-table-column>
         <el-table-column label="取餐方式" prop="pickupType" width="100" />
         <el-table-column label="取餐号" prop="pickupNo" width="80" />
-        <el-table-column label="下单时间" prop="createTime" width="180" />
+        <el-table-column label="下单时间" width="180">
+          <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+        </el-table-column>
         <el-table-column label="商品明细" min-width="200">
           <template #default="{ row }">
             <div v-for="item in row.details" :key="item.drinkName" class="order-item">
@@ -226,7 +229,7 @@ async function handleDetail(row) {
                 </div>
                 <div class="timeline-content">
                   <div class="timeline-title">提交订单</div>
-                  <div class="timeline-time">{{ currentOrder.createTime }}</div>
+                  <div class="timeline-time">{{ formatTime(currentOrder.createTime) }}</div>
                 </div>
               </div>
               <div class="timeline-item cancelled">
@@ -248,7 +251,7 @@ async function handleDetail(row) {
                 </div>
                 <div class="timeline-content">
                   <div class="timeline-title">{{ step.label }}</div>
-                  <div class="timeline-time" v-if="step.status === 1">{{ currentOrder.createTime }}</div>
+                  <div class="timeline-time" v-if="step.status === 1">{{ formatTime(currentOrder.createTime) }}</div>
                 </div>
               </div>
             </template>
@@ -265,7 +268,7 @@ async function handleDetail(row) {
           <el-descriptions-item label="订单金额">
             <span class="price">&yen;{{ currentOrder.amount?.toFixed(2) }}</span>
           </el-descriptions-item>
-          <el-descriptions-item label="下单时间">{{ currentOrder.createTime }}</el-descriptions-item>
+          <el-descriptions-item label="下单时间">{{ formatTime(currentOrder.createTime) }}</el-descriptions-item>
         </el-descriptions>
 
         <!-- 商品明细 -->
