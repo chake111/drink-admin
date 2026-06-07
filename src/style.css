@@ -50,6 +50,9 @@ body {
   line-height: 1.5;
 }
 
+/* 英文字体辅助类 — 与原型 .en 一致 */
+.en { font-family: var(--font-en); }
+
 #app {
   width: 100%;
   max-width: 100%;

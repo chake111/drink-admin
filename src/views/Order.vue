@@ -133,37 +133,33 @@ async function handleDetail(row) {
 
     <div class="table-card">
       <el-table :data="tableData" v-loading="loading">
+        <el-table-column label="取餐号" width="80">
+          <template #default="{ row }"><b class="en" style="font-size:15px;color:var(--primary)">{{ row.pickupNo }}</b></template>
+        </el-table-column>
         <el-table-column label="订单号" prop="orderNo" width="150" />
-        <el-table-column label="客户" width="150">
-          <template #default="{ row }">
-            <div class="customer-cell">
-              <div class="customer-avatar">{{ (row.userName || '?').charAt(0) }}</div>
-              <div class="customer-info">
-                <span class="customer-name">{{ row.userName || '-' }}</span>
-                <span class="customer-phone">{{ row.userPhone || '' }}</span>
-              </div>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="金额" width="100">
-          <template #default="{ row }"><span class="price">&yen;{{ row.amount?.toFixed(2) }}</span></template>
-        </el-table-column>
-        <el-table-column label="状态" width="120">
-          <template #default="{ row }">
-            <span class="obadge" :class="statusMap[row.status]?.cls"><i></i>{{ statusMap[row.status]?.label }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="取餐方式" prop="pickupType" width="100" />
-        <el-table-column label="取餐号" prop="pickupNo" width="80" />
         <el-table-column label="下单时间" width="180">
           <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="商品明细" min-width="200">
+        <el-table-column label="手机号" width="120">
+          <template #default="{ row }"><span class="phone-cell">{{ row.userPhone || '-' }}</span></template>
+        </el-table-column>
+        <el-table-column label="订单明细" min-width="200">
           <template #default="{ row }">
             <div v-for="item in row.details" :key="item.drinkName" class="order-item">
               {{ item.drinkName }} x{{ item.quantity }}
               <span v-if="item.spec" class="spec">{{ item.spec }}</span>
             </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="实收金额" width="100">
+          <template #default="{ row }"><span class="price">&yen;{{ row.amount?.toFixed(2) }}</span></template>
+        </el-table-column>
+        <el-table-column label="备注" width="120" show-overflow-tooltip>
+          <template #default="{ row }"><span class="remark-cell">{{ row.remark || '-' }}</span></template>
+        </el-table-column>
+        <el-table-column label="订单状态" width="120">
+          <template #default="{ row }">
+            <span class="obadge" :class="statusMap[row.status]?.cls"><i></i>{{ statusMap[row.status]?.label }}</span>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
@@ -348,6 +344,8 @@ async function handleDetail(row) {
 .customer-card-row { display: flex; justify-content: space-between; padding: 6px 0; }
 .customer-card-label { font-size: 13px; color: var(--ink-3); }
 .customer-card-value { font-size: 13px; color: var(--ink); font-weight: 500; }
+.phone-cell { font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); }
+.remark-cell { font-size: 13px; color: var(--ink-3); }
 .order-item { font-size: 13px; line-height: 1.8; }
 .spec { color: var(--ink-3); font-size: 12px; }
 .pager { display: flex; align-items: center; padding: 16px; gap: 14px; }
