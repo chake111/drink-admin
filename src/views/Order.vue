@@ -137,13 +137,10 @@ async function handleDetail(row) {
           <template #default="{ row }"><b class="en" style="font-size:15px;color:var(--primary)">{{ row.pickupNo }}</b></template>
         </el-table-column>
         <el-table-column label="订单号" prop="orderNo" width="150" />
-        <el-table-column label="下单时间" width="180">
-          <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
-        </el-table-column>
-        <el-table-column label="手机号" width="120">
+        <el-table-column label="顾客" width="120">
           <template #default="{ row }"><span class="phone-cell">{{ row.userPhone || '-' }}</span></template>
         </el-table-column>
-        <el-table-column label="订单明细" min-width="200">
+        <el-table-column label="商品" min-width="200">
           <template #default="{ row }">
             <div v-for="item in row.details" :key="item.drinkName" class="order-item">
               {{ item.drinkName }} x{{ item.quantity }}
@@ -151,16 +148,19 @@ async function handleDetail(row) {
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="实收金额" width="100">
+        <el-table-column label="金额" width="100">
           <template #default="{ row }"><span class="price">&yen;{{ row.amount?.toFixed(2) }}</span></template>
         </el-table-column>
-        <el-table-column label="备注" width="120" show-overflow-tooltip>
-          <template #default="{ row }"><span class="remark-cell">{{ row.remark || '-' }}</span></template>
+        <el-table-column label="取餐方式" width="100">
+          <template #default="{ row }">{{ row.pickupType || '-' }}</template>
         </el-table-column>
-        <el-table-column label="订单状态" width="120">
+        <el-table-column label="状态" width="120">
           <template #default="{ row }">
             <span class="obadge" :class="statusMap[row.status]?.cls"><i></i>{{ statusMap[row.status]?.label }}</span>
           </template>
+        </el-table-column>
+        <el-table-column label="下单时间" width="180">
+          <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
