@@ -14,11 +14,7 @@ const showSearch = ref(false)
 const searchQuery = ref('')
 
 // 通知
-const notifications = ref([
-  { id: 1, text: '您有 3 个新订单待处理', time: '2分钟前', read: false },
-  { id: 2, text: '库存预警：燕麦奶剩余不足', time: '1小时前', read: false },
-  { id: 3, text: '员工张三已完成今日排班', time: '3小时前', read: true }
-])
+const notifications = ref([])
 const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
 
 function toggleSearch() {
