@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import request from '../api/request.js'
+import request from '../utils/request.js'
 import { formatTime } from '../utils/format.js'
 
 const loading = ref(false)

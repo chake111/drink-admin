@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, nextTick, onBeforeUnmount } from 'vue'
-import request from '../api/request.js'
+import request from '../utils/request.js'
 import * as echarts from 'echarts'
 
 const todayData = ref({

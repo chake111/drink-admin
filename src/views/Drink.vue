@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import request from '../api/request.js'
+import request from '../utils/request.js'
 import ImageUpload from '../components/ImageUpload.vue'
 import { formatTime } from '../utils/format.js'
 

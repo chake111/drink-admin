@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import request from '../api/request.js'
+import request from '../utils/request.js'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },

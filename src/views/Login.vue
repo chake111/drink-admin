@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import request from '../api/request.js'
+import request from '../utils/request.js'
 
 const router = useRouter()
 
