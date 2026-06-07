@@ -170,13 +170,15 @@ async function handleDetail(row) {
         <el-table-column label="下单时间">
           <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" fixed="right" width="150">
+        <el-table-column label="操作" fixed="right" width="180">
           <template #default="{ row }">
-            <el-button v-if="row.status === 1" link type="primary" size="small" @click="handleConfirm(row.id)">接单</el-button>
-            <el-button v-if="row.status === 2" link type="primary" size="small" @click="handleComplete(row.id)">完成制作</el-button>
-            <el-button v-if="row.status === 3" link type="primary" size="small" @click="handlePickup(row.id)">确认取餐</el-button>
-            <el-button v-if="row.status === 1" link type="danger" size="small" @click="handleReject(row.id)">拒单</el-button>
-            <el-button link type="primary" size="small" @click="handleDetail(row)">详情</el-button>
+            <span v-if="row.status === 1" class="op-text" @click="handleConfirm(row.id)">接单</span>
+            <span v-if="row.status === 1" class="op-sep"></span>
+            <span v-if="row.status === 1" class="op-text del" @click="handleReject(row.id)">拒单</span>
+            <span v-if="row.status === 2" class="op-text" @click="handleComplete(row.id)">完成制作</span>
+            <span v-if="row.status === 3" class="op-text" @click="handlePickup(row.id)">确认取餐</span>
+            <span v-if="row.status >= 1 && row.status <= 3" class="op-sep"></span>
+            <span class="op-text" @click="handleDetail(row)">详情</span>
           </template>
         </el-table-column>
       </el-table>
@@ -187,103 +189,99 @@ async function handleDetail(row) {
     </div>
 
     <!-- 订单详情抽屉 -->
-    <el-drawer v-model="drawerVisible" title="订单详情" size="520px">
+    <el-drawer v-model="drawerVisible" title="订单详情" size="540px" class="order-drawer">
       <template v-if="currentOrder">
         <!-- 当前状态 -->
-        <div class="detail-status">
-          <span class="obadge" :class="statusMap[currentOrder.status]?.cls"><i></i>{{ statusMap[currentOrder.status]?.label }}</span>
+        <div class="od-sec">
+          <h4>当前状态</h4>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="obadge" :class="statusMap[currentOrder.status]?.cls"><i></i>{{ statusMap[currentOrder.status]?.label }}</span>
+            <span style="font-size:14px;color:var(--ink-2)">取餐号 <b class="en" style="color:var(--primary)">{{ currentOrder.pickupNo }}</b></span>
+          </div>
         </div>
 
-        <!-- 客户信息 -->
-        <div class="customer-card">
-          <div class="customer-card-header">
-            <div class="customer-card-avatar">{{ (currentOrder.userName || '?').charAt(0) }}</div>
-            <div class="customer-card-info">
-              <div class="customer-card-name">{{ currentOrder.userName || '未知用户' }}</div>
-              <div class="customer-card-phone">{{ currentOrder.userPhone || '-' }}</div>
+        <!-- 顾客信息 -->
+        <div class="od-sec">
+          <h4>顾客信息</h4>
+          <div class="od-card">
+            <div class="od-info-row"><span class="k">顾客</span><span class="v">{{ currentOrder.userName || '未知用户' }}</span></div>
+            <div class="od-info-row"><span class="k">联系电话</span><span class="v mono">{{ currentOrder.userPhone || '-' }}</span></div>
+            <div class="od-info-row"><span class="k">取餐方式</span><span class="v">{{ currentOrder.pickupType }}</span></div>
+            <div class="od-info-row" v-if="currentOrder.remark"><span class="k">备注</span><span class="v">{{ currentOrder.remark }}</span></div>
+          </div>
+        </div>
+
+        <!-- 商品明细 -->
+        <div class="od-sec">
+          <h4>商品明细</h4>
+          <div class="od-card">
+            <div class="od-line" v-for="item in currentOrder.details" :key="item.drinkName">
+              <div class="lthumb">
+                <img v-if="item.image" :src="item.image" alt="" />
+              </div>
+              <div class="lmid">
+                <div class="lname">{{ item.drinkName }}</div>
+                <div class="lspec" v-if="item.spec">{{ item.spec }}</div>
+              </div>
+              <div class="lqty">x{{ item.quantity }}</div>
+              <div class="lprice">&yen;{{ (item.price * item.quantity)?.toFixed(2) }}</div>
+            </div>
+            <div class="od-total">
+              <span class="tl">合计</span>
+              <span class="tv">&yen;{{ currentOrder.amount?.toFixed(2) }}</span>
             </div>
           </div>
-          <div class="customer-card-row">
-            <span class="customer-card-label">取餐方式</span>
-            <span class="customer-card-value">{{ currentOrder.pickupType }}</span>
-          </div>
-          <div class="customer-card-row" v-if="currentOrder.remark">
-            <span class="customer-card-label">备注</span>
-            <span class="customer-card-value">{{ currentOrder.remark }}</span>
-          </div>
         </div>
 
-        <!-- 订单进度时间线 -->
-        <div class="order-timeline">
+        <!-- 订单进度 -->
+        <div class="od-sec">
           <h4>订单进度</h4>
-          <div class="timeline">
-            <!-- 已取消状态特殊处理 -->
+          <div class="od-steps">
+            <!-- 已取消状态 -->
             <template v-if="currentOrder.status === 5">
-              <div class="timeline-item completed">
-                <div class="timeline-dot done">
+              <div class="od-step done">
+                <span class="sdot">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/></svg>
-                </div>
-                <div class="timeline-content">
-                  <div class="timeline-title">提交订单</div>
-                  <div class="timeline-time">{{ formatTime(currentOrder.createTime) }}</div>
+                </span>
+                <div class="stext">
+                  <div class="st">提交订单</div>
+                  <div class="stime mono">{{ formatTime(currentOrder.createTime) }}</div>
                 </div>
               </div>
-              <div class="timeline-item cancelled">
-                <div class="timeline-dot cancel">
+              <div class="od-step done">
+                <span class="sdot" style="background:var(--off);border-color:var(--off)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                </div>
-                <div class="timeline-content">
-                  <div class="timeline-title">订单已取消</div>
-                  <div class="timeline-desc" v-if="currentOrder.rejectReason">原因：{{ currentOrder.rejectReason }}</div>
+                </span>
+                <div class="stext">
+                  <div class="st" style="color:var(--off)">订单已取消</div>
+                  <div class="stime mono" v-if="currentOrder.rejectReason">原因：{{ currentOrder.rejectReason }}</div>
                 </div>
               </div>
             </template>
             <!-- 正常状态时间线 -->
             <template v-else>
-              <div v-for="step in timelineSteps" :key="step.status" class="timeline-item" :class="{ completed: currentOrder.status >= step.status }">
-                <div class="timeline-dot" :class="{ done: currentOrder.status >= step.status, active: currentOrder.status === step.status }">
+              <div v-for="step in timelineSteps" :key="step.status" class="od-step" :class="{ done: currentOrder.status >= step.status }">
+                <span class="sdot">
                   <svg v-if="currentOrder.status >= step.status" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/></svg>
-                  <span v-else>{{ step.status }}</span>
-                </div>
-                <div class="timeline-content">
-                  <div class="timeline-title">{{ step.label }}</div>
-                  <div class="timeline-time" v-if="step.status === 1">{{ formatTime(currentOrder.createTime) }}</div>
+                  <template v-else>{{ step.status }}</template>
+                </span>
+                <div class="stext">
+                  <div class="st">{{ step.label }}</div>
+                  <div class="stime mono" v-if="step.status === 1">{{ formatTime(currentOrder.createTime) }}</div>
                 </div>
               </div>
             </template>
           </div>
         </div>
+      </template>
 
-        <!-- 订单信息 -->
-        <el-descriptions :column="1" border size="small">
-          <el-descriptions-item label="订单号">{{ currentOrder.orderNo }}</el-descriptions-item>
-          <el-descriptions-item label="取餐方式">{{ currentOrder.pickupType }}</el-descriptions-item>
-          <el-descriptions-item label="取餐号">
-            <span class="pickup-no">{{ currentOrder.pickupNo }}</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="订单金额">
-            <span class="price">&yen;{{ currentOrder.amount?.toFixed(2) }}</span>
-          </el-descriptions-item>
-          <el-descriptions-item label="下单时间">{{ formatTime(currentOrder.createTime) }}</el-descriptions-item>
-        </el-descriptions>
-
-        <!-- 商品明细 -->
-        <h4 class="section-title">商品明细</h4>
-        <el-table :data="currentOrder.details" size="small" :show-header="false">
-          <el-table-column>
-            <template #default="{ row }">
-              <div class="detail-item">
-                <span class="detail-name">{{ row.drinkName }}</span>
-                <span class="detail-spec" v-if="row.spec">{{ row.spec }}</span>
-                <span class="detail-qty">x{{ row.quantity }}</span>
-                <span class="detail-price price">&yen;{{ (row.price * row.quantity)?.toFixed(2) }}</span>
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-        <div class="detail-total">
-          <span>合计</span>
-          <span class="price">&yen;{{ currentOrder.amount?.toFixed(2) }}</span>
+      <!-- 底部操作按钮 -->
+      <template #footer v-if="currentOrder">
+        <div class="drawer-footer">
+          <el-button v-if="currentOrder.status === 1" @click="handleReject(currentOrder.id)">拒单</el-button>
+          <el-button v-if="currentOrder.status === 1" type="primary" @click="handleConfirm(currentOrder.id)">接单</el-button>
+          <el-button v-if="currentOrder.status === 2" type="primary" @click="handleComplete(currentOrder.id)">完成制作</el-button>
+          <el-button v-if="currentOrder.status === 3" type="primary" @click="handlePickup(currentOrder.id)">确认取餐</el-button>
         </div>
       </template>
     </el-drawer>
@@ -335,23 +333,55 @@ async function handleDetail(row) {
 .customer-name { font-size: 13px; color: var(--ink); }
 .customer-phone { font-size: 11px; color: var(--ink-3); font-family: var(--font-mono); }
 
-/* 客户信息卡片 */
-.customer-card {
-  background: var(--surface-2); border-radius: var(--radius); padding: 16px; margin-bottom: 20px;
+/* 详情抽屉 — 对齐原型 od-sec / od-card / od-info-row */
+.od-sec { margin-bottom: 22px; }
+.od-sec h4 { font-size: 13px; color: var(--ink-3); font-weight: 600; margin-bottom: 12px; letter-spacing: .03em; }
+.od-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.od-info-row { display: flex; justify-content: space-between; font-size: 13.5px; padding: 7px 0; }
+.od-info-row .k { color: var(--ink-3); }
+.od-info-row .v { color: var(--ink); font-weight: 500; text-align: right; }
+.od-info-row .v.mono { font-family: var(--font-mono); }
+
+/* 商品行 — 对齐原型 od-line */
+.od-line { display: flex; align-items: flex-start; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+.od-line:last-child { border-bottom: 0; }
+.od-line .lthumb { width: 44px; height: 44px; border-radius: 8px; background: #F3E2D3; display: grid; place-items: center; color: var(--primary); flex-shrink: 0; overflow: hidden; }
+.od-line .lthumb svg { width: 22px; height: 22px; }
+.od-line .lthumb img { width: 100%; height: 100%; object-fit: cover; }
+.od-line .lmid { flex: 1; }
+.od-line .lname { font-size: 14px; font-weight: 600; }
+.od-line .lspec { font-size: 12px; color: var(--ink-3); margin-top: 3px; }
+.od-line .lqty { font-family: var(--font-mono); font-size: 13px; color: var(--ink-3); }
+.od-line .lprice { font-family: var(--font-mono); font-size: 14px; font-weight: 600; text-align: right; min-width: 64px; }
+
+/* 合计行 — 对齐原型 od-total */
+.od-total { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; margin-top: 4px; border-top: 1.5px solid var(--line-strong); }
+.od-total .tl { font-size: 14px; color: var(--ink-2); }
+.od-total .tv { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--primary); }
+
+/* 时间线 — 对齐原型 od-steps / od-step */
+.od-steps { display: flex; flex-direction: column; gap: 0; }
+.od-step { display: flex; gap: 13px; position: relative; padding-bottom: 20px; }
+.od-step:last-child { padding-bottom: 0; }
+.od-step .sdot {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--surface-2); border: 2px solid var(--line-strong);
+  display: grid; place-items: center; flex-shrink: 0; z-index: 2; color: var(--ink-3);
+  font-size: 11px; font-weight: 600;
 }
-.customer-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
-.customer-card-avatar {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: var(--primary-weak); color: var(--primary);
-  display: grid; place-items: center;
-  font-size: 16px; font-weight: 600; flex-shrink: 0;
-}
-.customer-card-info { display: flex; flex-direction: column; }
-.customer-card-name { font-size: 15px; font-weight: 600; color: var(--ink); }
-.customer-card-phone { font-size: 13px; color: var(--ink-2); font-family: var(--font-mono); margin-top: 2px; }
-.customer-card-row { display: flex; justify-content: space-between; padding: 6px 0; }
-.customer-card-label { font-size: 13px; color: var(--ink-3); }
-.customer-card-value { font-size: 13px; color: var(--ink); font-weight: 500; }
+.od-step .sdot svg { width: 13px; height: 13px; display: none; }
+.od-step.done .sdot { background: var(--ok); border-color: var(--ok); color: #fff; }
+.od-step.done .sdot svg { display: block; }
+.od-step:not(:last-child)::before { content: ''; position: absolute; left: 12px; top: 26px; bottom: 0; width: 2px; background: var(--line-strong); }
+.od-step.done:not(:last-child)::before { background: var(--ok); }
+.od-step .stext { padding-top: 3px; }
+.od-step .st { font-size: 13.5px; font-weight: 500; }
+.od-step.done .st { color: var(--ink); }
+.od-step:not(.done) .st { color: var(--ink-3); }
+.od-step .stime { font-size: 12px; color: var(--ink-3); font-family: var(--font-mono); margin-top: 2px; }
+
+/* 抽屉底部按钮 */
+.drawer-footer { display: flex; gap: 12px; justify-content: flex-end; }
 .phone-cell { font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); }
 .ocust { display: flex; align-items: center; gap: 9px; }
 .ocust .oav { width: 32px; height: 32px; border-radius: 50%; background: var(--primary-weak); color: var(--primary); display: grid; place-items: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
@@ -362,66 +392,21 @@ async function handleDetail(row) {
 .spec { color: var(--ink-3); font-size: 12px; }
 .pager { display: flex; align-items: center; padding: 16px; gap: 14px; }
 .pager-info { font-size: 13px; color: var(--ink-3); }
+.op-text { font-size: 13px; color: var(--primary); cursor: pointer; padding: 4px 8px; border-radius: 5px; }
+.op-text:hover { background: var(--primary-weak); }
+.op-text.del { color: var(--off); }
+.op-text.del:hover { background: var(--off-weak); }
+.op-sep { width: 1px; height: 12px; background: var(--line-strong); margin: 0 2px; display: inline-block; vertical-align: middle; }
 
-/* 详情抽屉样式 */
-.detail-status { margin-bottom: 24px; }
+/* 旧样式已移除，详情抽屉样式见上方 od-sec / od-card 系列 */
 
-.section-title { margin: 20px 0 12px; font-size: 15px; font-weight: 600; color: var(--ink); }
-
-.pickup-no { font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--primary); }
-
-/* 时间线样式 */
-.order-timeline { margin-bottom: 24px; }
-.order-timeline h4 { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 16px; }
-
-.timeline { position: relative; padding-left: 28px; }
-.timeline::before { content: ''; position: absolute; left: 11px; top: 4px; bottom: 4px; width: 2px; background: var(--line); }
-
-.timeline-item { position: relative; display: flex; padding-bottom: 20px; }
-.timeline-item:last-child { padding-bottom: 0; }
-
-.timeline-dot {
-  position: absolute; left: -28px; top: 0;
-  width: 24px; height: 24px; border-radius: 50%;
-  background: var(--surface); border: 2px solid var(--line);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; color: var(--ink-3); font-weight: 600;
-  z-index: 1;
+/* 覆盖 el-drawer 内部样式，对齐原型 .drawer / .dwr-head / .dwr-body / .dwr-foot */
+:deep(.el-drawer) { background: var(--bg); box-shadow: 0 12px 40px rgba(58,40,28,.16); }
+:deep(.el-drawer__header) {
+  padding: 22px 26px; margin-bottom: 0;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  font-size: 18px; font-weight: 600; color: var(--ink);
 }
-.timeline-dot svg { width: 14px; height: 14px; display: none; }
-
-.timeline-item.completed .timeline-dot.done {
-  background: var(--ok); border-color: var(--ok); color: #fff;
-}
-.timeline-item.completed .timeline-dot.done svg { display: block; }
-
-.timeline-item.completed .timeline-dot.active {
-  background: var(--primary); border-color: var(--primary); color: #fff;
-  box-shadow: 0 0 0 4px var(--primary-weak);
-}
-
-.timeline-item.cancelled .timeline-dot.cancel {
-  background: var(--off); border-color: var(--off); color: #fff;
-}
-.timeline-item.cancelled .timeline-dot.cancel svg { display: block; }
-
-.timeline-content { flex: 1; min-height: 24px; display: flex; flex-direction: column; justify-content: center; }
-.timeline-title { font-size: 14px; font-weight: 500; color: var(--ink); }
-.timeline-time { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
-.timeline-desc { font-size: 12px; color: var(--off); margin-top: 2px; }
-
-/* 商品明细 */
-.detail-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
-.detail-name { font-weight: 500; color: var(--ink); }
-.detail-spec { color: var(--ink-3); font-size: 12px; }
-.detail-qty { color: var(--ink-2); margin-left: auto; }
-.detail-price { min-width: 60px; text-align: right; }
-
-.detail-total {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 0; margin-top: 8px;
-  border-top: 1px solid var(--line);
-  font-weight: 600; color: var(--ink);
-}
-.detail-total .price { font-size: 18px; }
+:deep(.el-drawer__body) { padding: 24px 26px; flex: 1; overflow-y: auto; }
+:deep(.el-drawer__footer) { padding: 16px 26px; background: var(--surface); border-top: 1px solid var(--line); }
 </style>

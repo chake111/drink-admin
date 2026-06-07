@@ -198,12 +198,12 @@ async function handleBatchDelete() {
         <el-table-column label="价格" width="100">
           <template #default="{ row }"><span class="price">{{ row.price?.toFixed(2) }}</span></template>
         </el-table-column>
-        <el-table-column label="口味规格" min-width="180">
+        <el-table-column label="口味规格" min-width="100">
           <template #default="{ row }">
             <div class="flavors"><span v-for="f in row.flavors" :key="f.name" class="flavor-tag">{{ f.name }}</span></div>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="130">
+        <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <span class="st-wrap">
               <span class="toggle" :class="{ on: row.status === 1 }" @click="handleStatusChange(row.id, row.status === 1 ? 0 : 1)"></span>
@@ -211,7 +211,7 @@ async function handleBatchDelete() {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="更新时间" width="160">
+        <el-table-column label="更新时间">
           <template #default="{ row }">{{ formatTime(row.updateTime) }}</template>
         </el-table-column>
         <el-table-column label="操作" width="140" fixed="right">
