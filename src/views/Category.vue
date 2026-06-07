@@ -35,6 +35,8 @@ async function loadData() {
   } catch (e) {} finally { loading.value = false }
 }
 
+function handleSearch() { /* computed 过滤自动生效 */ }
+
 function handleAdd() {
   dialogTitle.value = '新增分类'
   form.value = { name: '', icon: '', sort: 0, status: 1 }
@@ -90,12 +92,16 @@ async function handleDelete(row) {
       <el-button type="primary" @click="handleAdd">新增分类</el-button>
     </div>
 
-    <div class="search-bar">
-      <el-input v-model="searchText" placeholder="搜索分类名称" clearable style="width: 220px" />
-      <el-select v-model="statusFilter" placeholder="状态筛选" clearable style="width: 140px">
-        <el-option label="启用" :value="1" />
-        <el-option label="停用" :value="0" />
-      </el-select>
+    <div class="filter-bar">
+      <div class="filter-row">
+        <el-input v-model="searchText" placeholder="分类名称" clearable style="width: 200px" />
+        <el-select v-model="statusFilter" placeholder="全部状态" clearable style="width: 120px">
+          <el-option label="启用" :value="1" />
+          <el-option label="停用" :value="0" />
+        </el-select>
+        <el-button @click="searchText = ''; statusFilter = ''">重置</el-button>
+        <el-button type="primary" @click="handleSearch">查询</el-button>
+      </div>
     </div>
 
     <div class="table-card">
@@ -156,6 +162,7 @@ async function handleDelete(row) {
 .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; }
 .page-header h1 { font-size: 21px; font-weight: 600; }
 .page-header p { font-size: 13px; color: var(--ink-3); margin-top: 5px; }
-.search-bar { display: flex; gap: 12px; margin-bottom: 16px; }
+.filter-bar { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 18px; box-shadow: var(--shadow); }
+.filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .table-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
 </style>

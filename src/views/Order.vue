@@ -7,7 +7,6 @@ import { formatTime } from '../utils/format.js'
 const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)
-const activeTab = ref('all')
 const queryParams = ref({ page: 1, pageSize: 10, orderNo: '', status: null })
 
 const statusMap = {
@@ -48,13 +47,7 @@ async function loadData() {
 
 function handleSearch() { queryParams.value.page = 1; loadData() }
 function handleReset() {
-  activeTab.value = 'all'
   queryParams.value = { page: 1, pageSize: 10, orderNo: '', status: null }
-  loadData()
-}
-function handleTabChange(name) {
-  queryParams.value.status = name === 'all' ? null : Number(name)
-  queryParams.value.page = 1
   loadData()
 }
 function handlePageChange(page) { queryParams.value.page = page; loadData() }
@@ -121,20 +114,21 @@ async function handleDetail(row) {
       </div>
     </div>
 
-    <!-- 状态Tab -->
-    <el-tabs v-model="activeTab" class="status-tabs" @tab-change="handleTabChange">
-      <el-tab-pane label="全部" name="all" />
-      <el-tab-pane label="待接单" name="1" />
-      <el-tab-pane label="制作中" name="2" />
-      <el-tab-pane label="待取餐" name="3" />
-      <el-tab-pane label="已完成" name="4" />
-      <el-tab-pane label="已取消" name="5" />
-    </el-tabs>
-
+    <!-- 筛选栏 -->
     <div class="filter-bar">
-      <el-input v-model="queryParams.orderNo" placeholder="订单号" clearable style="width: 200px" @clear="handleSearch" @keyup.enter="handleSearch" />
-      <el-button @click="handleReset">重置</el-button>
-      <el-button type="primary" @click="handleSearch">查询</el-button>
+      <div class="status-tabs">
+        <span class="status-tab" :class="{ active: !queryParams.status }" @click="queryParams.status = null; handleSearch()">全部</span>
+        <span class="status-tab" :class="{ active: queryParams.status === 1 }" @click="queryParams.status = 1; handleSearch()">待接单</span>
+        <span class="status-tab" :class="{ active: queryParams.status === 2 }" @click="queryParams.status = 2; handleSearch()">制作中</span>
+        <span class="status-tab" :class="{ active: queryParams.status === 3 }" @click="queryParams.status = 3; handleSearch()">待取餐</span>
+        <span class="status-tab" :class="{ active: queryParams.status === 4 }" @click="queryParams.status = 4; handleSearch()">已完成</span>
+        <span class="status-tab" :class="{ active: queryParams.status === 5 }" @click="queryParams.status = 5; handleSearch()">已取消</span>
+      </div>
+      <div class="filter-row">
+        <el-input v-model="queryParams.orderNo" placeholder="订单号" clearable style="width: 200px" @clear="handleSearch" @keyup.enter="handleSearch" />
+        <el-button @click="handleReset">重置</el-button>
+        <el-button type="primary" @click="handleSearch">查询</el-button>
+      </div>
     </div>
 
     <div class="table-card">
@@ -309,9 +303,12 @@ async function handleDetail(row) {
 .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; }
 .page-header h1 { font-size: 21px; font-weight: 600; }
 .page-header p { font-size: 13px; color: var(--ink-3); margin-top: 5px; }
-.status-tabs { margin-bottom: 4px; }
-.status-tabs :deep(.el-tabs__header) { margin-bottom: 0; }
-.filter-bar { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 18px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.filter-bar { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 18px; box-shadow: var(--shadow); }
+.status-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.status-tab { font-size: 13px; padding: 7px 15px; border-radius: 999px; cursor: pointer; color: var(--ink-2); background: var(--surface-2); border: 1px solid transparent; transition: all 0.15s; }
+.status-tab:hover { color: var(--primary); }
+.status-tab.active { background: var(--primary-weak); color: var(--primary); font-weight: 600; }
+.filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .table-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
 .price { font-family: var(--font-mono); font-weight: 600; color: var(--primary); }
 
