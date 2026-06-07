@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, nextTick, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, nextTick, onBeforeUnmount } from 'vue'
 import request from '../api/request.js'
 import * as echarts from 'echarts'
 
@@ -7,18 +7,34 @@ const todayData = ref({
   todayOrders: 0,
   todayAmount: 0,
   pendingOrders: 0,
-  completedOrders: 0
+  completedOrders: 0,
+  ordersChange: 0,    // 订单环比变化
+  amountChange: 0,    // 营收环比变化
+  pendingChange: 0,   // 待接单环比变化
+  completedChange: 0  // 已完成环比变化
 })
 
 const trendData = ref([])
 const topData = ref([])
+const hasTrendData = computed(() => trendData.value.length > 0)
+
+// 监听数据变化，动态渲染图表
+watch(trendData, async (newVal) => {
+  if (newVal.length > 0) {
+    await nextTick()
+    renderTrendChart()
+  }
+})
 
 // ECharts 实例引用
 let trendChart = null
 
+// ECharts 容器 ref
+const trendChartRef = ref(null)
+
 /** 渲染趋势图 */
 function renderTrendChart() {
-  const chartDom = document.getElementById('trend-chart')
+  const chartDom = trendChartRef.value
   if (!chartDom) return
 
   if (trendChart) {
@@ -72,8 +88,6 @@ function renderTrendChart() {
     yAxis: [
       {
         type: 'value',
-        name: '营业额(元)',
-        nameTextStyle: { color: '#A8988B', fontSize: 12 },
         axisLine: { show: false },
         axisTick: { show: false },
         splitLine: { lineStyle: { color: '#EBE2D7', type: 'dashed' } },
@@ -81,8 +95,6 @@ function renderTrendChart() {
       },
       {
         type: 'value',
-        name: '订单数(单)',
-        nameTextStyle: { color: '#A8988B', fontSize: 12 },
         axisLine: { show: false },
         axisTick: { show: false },
         splitLine: { show: false },
@@ -146,7 +158,9 @@ onMounted(async () => {
   }
 
   await nextTick()
-  renderTrendChart()
+  if (hasTrendData.value) {
+    renderTrendChart()
+  }
   window.addEventListener('resize', handleResize)
 })
 
@@ -177,6 +191,11 @@ onBeforeUnmount(() => {
         <div class="stat-info">
           <span class="stat-label">今日订单</span>
           <span class="stat-value">{{ todayData.todayOrders }}</span>
+          <span class="stat-change" :class="{ up: todayData.ordersChange > 0, down: todayData.ordersChange < 0 }" v-if="todayData.ordersChange !== 0">
+            <svg v-if="todayData.ordersChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            {{ Math.abs(todayData.ordersChange) }}%
+          </span>
         </div>
       </div>
 
@@ -187,6 +206,11 @@ onBeforeUnmount(() => {
         <div class="stat-info">
           <span class="stat-label">今日营收</span>
           <span class="stat-value">&yen;{{ Number(todayData.todayAmount || 0).toFixed(2) }}</span>
+          <span class="stat-change" :class="{ up: todayData.amountChange > 0, down: todayData.amountChange < 0 }" v-if="todayData.amountChange !== 0">
+            <svg v-if="todayData.amountChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            {{ Math.abs(todayData.amountChange) }}%
+          </span>
         </div>
       </div>
 
@@ -197,6 +221,11 @@ onBeforeUnmount(() => {
         <div class="stat-info">
           <span class="stat-label">待接单</span>
           <span class="stat-value">{{ todayData.pendingOrders }}</span>
+          <span class="stat-change" :class="{ up: todayData.pendingChange > 0, down: todayData.pendingChange < 0 }" v-if="todayData.pendingChange !== 0">
+            <svg v-if="todayData.pendingChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            {{ Math.abs(todayData.pendingChange) }}%
+          </span>
         </div>
       </div>
 
@@ -207,6 +236,11 @@ onBeforeUnmount(() => {
         <div class="stat-info">
           <span class="stat-label">已完成</span>
           <span class="stat-value">{{ todayData.completedOrders }}</span>
+          <span class="stat-change" :class="{ up: todayData.completedChange > 0, down: todayData.completedChange < 0 }" v-if="todayData.completedChange !== 0">
+            <svg v-if="todayData.completedChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            {{ Math.abs(todayData.completedChange) }}%
+          </span>
         </div>
       </div>
     </div>
@@ -215,7 +249,11 @@ onBeforeUnmount(() => {
     <div class="chart-row">
       <div class="chart-card">
         <h3>近7日销售趋势</h3>
-        <div id="trend-chart" class="chart-container"></div>
+        <div v-if="hasTrendData" ref="trendChartRef" class="chart-container"></div>
+        <div v-else class="chart-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          <span>暂无趋势数据</span>
+        </div>
       </div>
 
       <div class="chart-card">
@@ -238,7 +276,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .page-header h1 {
@@ -256,7 +294,7 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 18px;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .stat-card {
@@ -301,8 +339,8 @@ onBeforeUnmount(() => {
 }
 
 .stat-icon.pending {
-  background: #FFF3E0;
-  color: #F57C00;
+  background: var(--warn-weak);
+  color: var(--warn);
 }
 
 .stat-icon.completed {
@@ -325,6 +363,29 @@ onBeforeUnmount(() => {
   font-weight: 700;
   color: var(--ink);
   font-family: var(--font-en);
+}
+
+.stat-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+  font-family: var(--font-en);
+}
+
+.stat-change svg {
+  width: 14px;
+  height: 14px;
+}
+
+.stat-change.up {
+  color: var(--ok);
+}
+
+.stat-change.down {
+  color: var(--el-color-danger, #F56C6C);
 }
 
 .chart-row {
@@ -352,10 +413,29 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
+.chart-empty {
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.chart-empty .empty-icon {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+}
+
 .top-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .top-item {
@@ -413,5 +493,28 @@ onBeforeUnmount(() => {
   text-align: center;
   color: var(--ink-3);
   padding: 40px 0;
+}
+
+/* 响应式布局 */
+@media (max-width: 1200px) {
+  .stat-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chart-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .stat-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 }
 </style>

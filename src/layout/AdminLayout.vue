@@ -7,6 +7,27 @@ const route = useRoute()
 
 const isCollapse = ref(false)
 
+// 搜索
+const showSearch = ref(false)
+const searchQuery = ref('')
+
+// 通知
+const notifications = ref([
+  { id: 1, text: '您有 3 个新订单待处理', time: '2分钟前', read: false },
+  { id: 2, text: '库存预警：燕麦奶剩余不足', time: '1小时前', read: false },
+  { id: 3, text: '员工张三已完成今日排班', time: '3小时前', read: true }
+])
+const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
+
+function toggleSearch() {
+  showSearch.value = !showSearch.value
+  if (!showSearch.value) searchQuery.value = ''
+}
+
+function markAllRead() {
+  notifications.value.forEach(n => n.read = true)
+}
+
 const menuList = [
   {
     group: '概览',
@@ -65,7 +86,7 @@ function handleLogout() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/><path d="M12 14v8"/></svg>
         </div>
         <div v-show="!isCollapse" class="brand-text">
-          <span class="brand-name">茶咖优选</span>
+          <span class="brand-name">茶优选</span>
           <span class="brand-sub">餐饮管理后台</span>
         </div>
       </div>
@@ -114,6 +135,36 @@ function handleLogout() {
         </div>
 
         <div class="topbar-right">
+          <!-- 搜索 -->
+          <div class="search-box" v-if="showSearch">
+            <input v-model="searchQuery" placeholder="搜索功能、订单、饮品..." autofocus @keyup.esc="toggleSearch" />
+            <span class="search-close" @click="toggleSearch">&times;</span>
+          </div>
+          <el-icon v-else class="topbar-icon" @click="toggleSearch">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </el-icon>
+
+          <!-- 通知铃铛 -->
+          <el-dropdown trigger="click" @command="markAllRead" placement="bottom-end">
+            <el-icon class="topbar-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="notify-badge" v-if="unreadCount">{{ unreadCount }}</span>
+            </el-icon>
+            <template #dropdown>
+              <el-dropdown-menu class="notify-dropdown">
+                <div class="notify-header">
+                  <span>通知</span>
+                  <el-button link type="primary" size="small" @click.stop="markAllRead">全部已读</el-button>
+                </div>
+                <div v-for="n in notifications" :key="n.id" class="notify-item" :class="{ unread: !n.read }">
+                  <div class="notify-text">{{ n.text }}</div>
+                  <div class="notify-time">{{ n.time }}</div>
+                </div>
+                <div v-if="notifications.length === 0" class="notify-empty">暂无通知</div>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+
           <div class="user-info">
             <div class="user-avatar">{{ userInfo.name?.charAt(0) || '管' }}</div>
             <div class="user-detail">
@@ -343,6 +394,143 @@ function handleLogout() {
   cursor: pointer;
   padding-left: 18px;
   border-left: 1px solid var(--line);
+}
+
+/* 顶栏图标 */
+.topbar-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--ink-2);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s;
+}
+
+.topbar-icon:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.topbar-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* 通知红点 */
+.notify-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--el-color-danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+/* 搜索框 */
+.search-box {
+  display: flex;
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  height: 36px;
+  width: 240px;
+  transition: border-color 0.15s;
+}
+
+.search-box:focus-within {
+  border-color: var(--primary);
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.search-box input::placeholder {
+  color: var(--ink-3);
+}
+
+.search-close {
+  font-size: 18px;
+  color: var(--ink-3);
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.search-close:hover {
+  color: var(--ink);
+}
+
+/* 通知下拉 */
+.notify-dropdown {
+  width: 320px;
+  padding: 0;
+}
+
+.notify-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+
+.notify-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.notify-item:last-child {
+  border-bottom: none;
+}
+
+.notify-item:hover {
+  background: var(--surface-2);
+}
+
+.notify-item.unread {
+  background: var(--primary-weak);
+}
+
+.notify-text {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.notify-time {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+
+.notify-empty {
+  padding: 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-3);
 }
 
 .user-avatar {

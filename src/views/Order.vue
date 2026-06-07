@@ -17,6 +17,14 @@ const statusMap = {
   5: { label: '已取消', type: 'info' }
 }
 
+// 时间线步骤配置
+const timelineSteps = [
+  { status: 1, label: '提交订单' },
+  { status: 2, label: '商家接单' },
+  { status: 3, label: '制作完成' },
+  { status: 4, label: '已取餐' }
+]
+
 // 详情抽屉
 const drawerVisible = ref(false)
 const currentOrder = ref(null)
@@ -131,7 +139,17 @@ async function handleDetail(row) {
     <div class="table-card">
       <el-table :data="tableData" v-loading="loading">
         <el-table-column label="订单号" prop="orderNo" width="150" />
-        <el-table-column label="用户" prop="userName" width="100" />
+        <el-table-column label="客户" width="150">
+          <template #default="{ row }">
+            <div class="customer-cell">
+              <div class="customer-avatar">{{ (row.userName || '?').charAt(0) }}</div>
+              <div class="customer-info">
+                <span class="customer-name">{{ row.userName || '-' }}</span>
+                <span class="customer-phone">{{ row.userPhone || '' }}</span>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column label="金额" width="100">
           <template #default="{ row }"><span class="price">&yen;{{ row.amount?.toFixed(2) }}</span></template>
         </el-table-column>
@@ -168,27 +186,106 @@ async function handleDetail(row) {
     </div>
 
     <!-- 订单详情抽屉 -->
-    <el-drawer v-model="drawerVisible" title="订单详情" size="480px">
+    <el-drawer v-model="drawerVisible" title="订单详情" size="520px">
       <template v-if="currentOrder">
-        <el-descriptions :column="1" border>
+        <!-- 当前状态 -->
+        <div class="detail-status">
+          <el-tag :type="statusMap[currentOrder.status]?.type" size="large" effect="dark">
+            {{ statusMap[currentOrder.status]?.label }}
+          </el-tag>
+        </div>
+
+        <!-- 客户信息 -->
+        <div class="customer-card">
+          <div class="customer-card-header">
+            <div class="customer-card-avatar">{{ (currentOrder.userName || '?').charAt(0) }}</div>
+            <div class="customer-card-info">
+              <div class="customer-card-name">{{ currentOrder.userName || '未知用户' }}</div>
+              <div class="customer-card-phone">{{ currentOrder.userPhone || '-' }}</div>
+            </div>
+          </div>
+          <div class="customer-card-row">
+            <span class="customer-card-label">取餐方式</span>
+            <span class="customer-card-value">{{ currentOrder.pickupType }}</span>
+          </div>
+          <div class="customer-card-row" v-if="currentOrder.remark">
+            <span class="customer-card-label">备注</span>
+            <span class="customer-card-value">{{ currentOrder.remark }}</span>
+          </div>
+        </div>
+
+        <!-- 订单进度时间线 -->
+        <div class="order-timeline">
+          <h4>订单进度</h4>
+          <div class="timeline">
+            <!-- 已取消状态特殊处理 -->
+            <template v-if="currentOrder.status === 5">
+              <div class="timeline-item completed">
+                <div class="timeline-dot done">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/></svg>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-title">提交订单</div>
+                  <div class="timeline-time">{{ currentOrder.createTime }}</div>
+                </div>
+              </div>
+              <div class="timeline-item cancelled">
+                <div class="timeline-dot cancel">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-title">订单已取消</div>
+                  <div class="timeline-desc" v-if="currentOrder.rejectReason">原因：{{ currentOrder.rejectReason }}</div>
+                </div>
+              </div>
+            </template>
+            <!-- 正常状态时间线 -->
+            <template v-else>
+              <div v-for="step in timelineSteps" :key="step.status" class="timeline-item" :class="{ completed: currentOrder.status >= step.status }">
+                <div class="timeline-dot" :class="{ done: currentOrder.status >= step.status, active: currentOrder.status === step.status }">
+                  <svg v-if="currentOrder.status >= step.status" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/></svg>
+                  <span v-else>{{ step.status }}</span>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-title">{{ step.label }}</div>
+                  <div class="timeline-time" v-if="step.status === 1">{{ currentOrder.createTime }}</div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- 订单信息 -->
+        <el-descriptions :column="1" border size="small">
           <el-descriptions-item label="订单号">{{ currentOrder.orderNo }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="statusMap[currentOrder.status]?.type" size="small">{{ statusMap[currentOrder.status]?.label }}</el-tag>
-          </el-descriptions-item>
           <el-descriptions-item label="取餐方式">{{ currentOrder.pickupType }}</el-descriptions-item>
-          <el-descriptions-item label="取餐号">{{ currentOrder.pickupNo }}</el-descriptions-item>
-          <el-descriptions-item label="订单金额">&yen;{{ currentOrder.amount?.toFixed(2) }}</el-descriptions-item>
+          <el-descriptions-item label="取餐号">
+            <span class="pickup-no">{{ currentOrder.pickupNo }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="订单金额">
+            <span class="price">&yen;{{ currentOrder.amount?.toFixed(2) }}</span>
+          </el-descriptions-item>
           <el-descriptions-item label="下单时间">{{ currentOrder.createTime }}</el-descriptions-item>
         </el-descriptions>
-        <h4 style="margin: 16px 0 8px">商品明细</h4>
-        <el-table :data="currentOrder.details" size="small">
-          <el-table-column label="饮品" prop="drinkName" />
-          <el-table-column label="规格" prop="spec" />
-          <el-table-column label="数量" prop="quantity" width="80" />
-          <el-table-column label="单价" width="100">
-            <template #default="{ row }">&yen;{{ row.price?.toFixed(2) }}</template>
+
+        <!-- 商品明细 -->
+        <h4 class="section-title">商品明细</h4>
+        <el-table :data="currentOrder.details" size="small" :show-header="false">
+          <el-table-column>
+            <template #default="{ row }">
+              <div class="detail-item">
+                <span class="detail-name">{{ row.drinkName }}</span>
+                <span class="detail-spec" v-if="row.spec">{{ row.spec }}</span>
+                <span class="detail-qty">x{{ row.quantity }}</span>
+                <span class="detail-price price">&yen;{{ (row.price * row.quantity)?.toFixed(2) }}</span>
+              </div>
+            </template>
           </el-table-column>
         </el-table>
+        <div class="detail-total">
+          <span>合计</span>
+          <span class="price">&yen;{{ currentOrder.amount?.toFixed(2) }}</span>
+        </div>
       </template>
     </el-drawer>
 
@@ -213,9 +310,101 @@ async function handleDetail(row) {
 .status-tabs :deep(.el-tabs__header) { margin-bottom: 0; }
 .filter-bar { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 18px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .table-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
-.price { font-family: var(--font-mono); font-weight: 600; font-size: 14px; }
+.price { font-family: var(--font-mono); font-weight: 600; color: var(--primary); }
+
+/* 客户信息单元格 */
+.customer-cell { display: flex; align-items: center; gap: 8px; }
+.customer-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--primary-weak); color: var(--primary);
+  display: grid; place-items: center;
+  font-size: 12px; font-weight: 600; flex-shrink: 0;
+}
+.customer-info { display: flex; flex-direction: column; line-height: 1.3; }
+.customer-name { font-size: 13px; color: var(--ink); }
+.customer-phone { font-size: 11px; color: var(--ink-3); font-family: var(--font-mono); }
+
+/* 客户信息卡片 */
+.customer-card {
+  background: var(--surface-2); border-radius: var(--radius); padding: 16px; margin-bottom: 20px;
+}
+.customer-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.customer-card-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--primary-weak); color: var(--primary);
+  display: grid; place-items: center;
+  font-size: 16px; font-weight: 600; flex-shrink: 0;
+}
+.customer-card-info { display: flex; flex-direction: column; }
+.customer-card-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+.customer-card-phone { font-size: 13px; color: var(--ink-2); font-family: var(--font-mono); margin-top: 2px; }
+.customer-card-row { display: flex; justify-content: space-between; padding: 6px 0; }
+.customer-card-label { font-size: 13px; color: var(--ink-3); }
+.customer-card-value { font-size: 13px; color: var(--ink); font-weight: 500; }
 .order-item { font-size: 13px; line-height: 1.8; }
 .spec { color: var(--ink-3); font-size: 12px; }
 .pager { display: flex; align-items: center; padding: 16px; gap: 14px; }
 .pager-info { font-size: 13px; color: var(--ink-3); }
+
+/* 详情抽屉样式 */
+.detail-status { margin-bottom: 24px; }
+
+.section-title { margin: 20px 0 12px; font-size: 15px; font-weight: 600; color: var(--ink); }
+
+.pickup-no { font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--primary); }
+
+/* 时间线样式 */
+.order-timeline { margin-bottom: 24px; }
+.order-timeline h4 { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 16px; }
+
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before { content: ''; position: absolute; left: 11px; top: 4px; bottom: 4px; width: 2px; background: var(--line); }
+
+.timeline-item { position: relative; display: flex; padding-bottom: 20px; }
+.timeline-item:last-child { padding-bottom: 0; }
+
+.timeline-dot {
+  position: absolute; left: -28px; top: 0;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--surface); border: 2px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--ink-3); font-weight: 600;
+  z-index: 1;
+}
+.timeline-dot svg { width: 14px; height: 14px; display: none; }
+
+.timeline-item.completed .timeline-dot.done {
+  background: var(--ok); border-color: var(--ok); color: #fff;
+}
+.timeline-item.completed .timeline-dot.done svg { display: block; }
+
+.timeline-item.completed .timeline-dot.active {
+  background: var(--primary); border-color: var(--primary); color: #fff;
+  box-shadow: 0 0 0 4px var(--primary-weak);
+}
+
+.timeline-item.cancelled .timeline-dot.cancel {
+  background: var(--el-color-danger); border-color: var(--el-color-danger); color: #fff;
+}
+.timeline-item.cancelled .timeline-dot.cancel svg { display: block; }
+
+.timeline-content { flex: 1; min-height: 24px; display: flex; flex-direction: column; justify-content: center; }
+.timeline-title { font-size: 14px; font-weight: 500; color: var(--ink); }
+.timeline-time { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.timeline-desc { font-size: 12px; color: var(--el-color-danger); margin-top: 2px; }
+
+/* 商品明细 */
+.detail-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.detail-name { font-weight: 500; color: var(--ink); }
+.detail-spec { color: var(--ink-3); font-size: 12px; }
+.detail-qty { color: var(--ink-2); margin-left: auto; }
+.detail-price { min-width: 60px; text-align: right; }
+
+.detail-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; margin-top: 8px;
+  border-top: 1px solid var(--line);
+  font-weight: 600; color: var(--ink);
+}
+.detail-total .price { font-size: 18px; }
 </style>
