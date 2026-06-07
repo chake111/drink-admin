@@ -33,14 +33,14 @@ async function loadData() {
     const res = await request.get('/drink/page', { params: queryParams.value })
     tableData.value = res.data.records
     total.value = res.data.total
-  } catch (e) {} finally { loading.value = false }
+  } catch (e) { } finally { loading.value = false }
 }
 
 async function loadCategories() {
   try {
     const res = await request.get('/category/list')
     categoryList.value = res.data
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function handleSearch() { queryParams.value.page = 1; loadData() }
@@ -106,14 +106,14 @@ async function handleSubmit() {
     }
     drawerVisible.value = false
     loadData()
-  } catch (e) {}
+  } catch (e) { }
 }
 
 async function handleStatusChange(id, status) {
   try {
     await request.post(`/drink/status/${status}`, null, { params: { ids: String(id) } })
     loadData()
-  } catch (e) {}
+  } catch (e) { }
 }
 
 async function handleDelete(id) {
@@ -122,7 +122,7 @@ async function handleDelete(id) {
     await request.delete('/drink', { params: { ids: String(id) } })
     ElMessage.success('删除成功')
     loadData()
-  } catch (e) {}
+  } catch (e) { }
 }
 
 async function handleBatchStatus(status) {
@@ -130,7 +130,7 @@ async function handleBatchStatus(status) {
   try {
     await request.post(`/drink/status/${status}`, null, { params: { ids: selectedIds.value.join(',') } })
     loadData()
-  } catch (e) {}
+  } catch (e) { }
 }
 
 async function handleBatchDelete() {
@@ -140,7 +140,7 @@ async function handleBatchDelete() {
     await request.delete('/drink', { params: { ids: selectedIds.value.join(',') } })
     ElMessage.success('删除成功')
     loadData()
-  } catch (e) {}
+  } catch (e) { }
 }
 </script>
 
@@ -157,12 +157,17 @@ async function handleBatchDelete() {
     <!-- 筛选栏 -->
     <div class="filter-bar">
       <div class="category-tabs">
-        <span class="cat-tab" :class="{ active: !queryParams.categoryId }" @click="queryParams.categoryId = null; handleSearch()">全部</span>
-        <span v-for="cat in categoryList" :key="cat.id" class="cat-tab" :class="{ active: queryParams.categoryId === cat.id }" @click="queryParams.categoryId = cat.id; handleSearch()">{{ cat.name }}</span>
+        <span class="cat-tab" :class="{ active: !queryParams.categoryId }"
+          @click="queryParams.categoryId = null; handleSearch()">全部</span>
+        <span v-for="cat in categoryList" :key="cat.id" class="cat-tab"
+          :class="{ active: queryParams.categoryId === cat.id }"
+          @click="queryParams.categoryId = cat.id; handleSearch()">{{ cat.name }}</span>
       </div>
       <div class="filter-row">
-        <el-input v-model="queryParams.name" placeholder="饮品名称" clearable style="width: 200px" @clear="handleSearch" @keyup.enter="handleSearch" />
-        <el-select v-model="queryParams.status" placeholder="全部状态" clearable style="width: 120px" @change="handleSearch">
+        <el-input v-model="queryParams.name" placeholder="饮品名称" clearable style="width: 200px" @clear="handleSearch"
+          @keyup.enter="handleSearch" />
+        <el-select v-model="queryParams.status" placeholder="全部状态" clearable style="width: 120px"
+          @change="handleSearch">
           <el-option label="起售" :value="1" /><el-option label="停售" :value="0" />
         </el-select>
         <el-button @click="handleReset">重置</el-button>
@@ -203,13 +208,15 @@ async function handleBatchDelete() {
         </el-table-column>
         <el-table-column label="口味规格" min-width="100">
           <template #default="{ row }">
-            <div class="flavors"><span v-for="f in row.flavors" :key="f.name" class="flavor-tag">{{ f.name }}</span></div>
+            <div class="flavors"><span v-for="f in row.flavors" :key="f.name" class="flavor-tag">{{ f.name }}</span>
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <span class="st-wrap">
-              <span class="toggle" :class="{ on: row.status === 1 }" @click="handleStatusChange(row.id, row.status === 1 ? 0 : 1)"></span>
+              <span class="toggle" :class="{ on: row.status === 1 }"
+                @click="handleStatusChange(row.id, row.status === 1 ? 0 : 1)"></span>
               <span class="txt">{{ row.status === 1 ? '起售' : '停售' }}</span>
             </span>
           </template>
@@ -227,13 +234,21 @@ async function handleBatchDelete() {
       </el-table>
       <div class="pager">
         <span class="pager-info">共 {{ total }} 条</span>
-        <el-pagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize" :total="total" :page-sizes="[10, 20, 50]" layout="sizes, prev, pager, next" @current-change="handlePageChange" @size-change="handleSizeChange" />
+        <el-pagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize" :total="total"
+          :page-sizes="[10, 20, 50]" layout="sizes, prev, pager, next" @current-change="handlePageChange"
+          @size-change="handleSizeChange" />
       </div>
     </div>
 
     <!-- 新增/编辑抽屉 -->
-    <el-drawer v-model="drawerVisible" :title="drawerTitle" size="540px" class="drink-drawer">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+    <el-drawer v-model="drawerVisible" size="540px" class="drink-drawer">
+      <template #header>
+        <div class="drawer-title-group">
+          <h2 class="drawer-title">{{ drawerTitle }}</h2>
+          <p class="drawer-subtitle">填写饮品基本信息与口味规格</p>
+        </div>
+      </template>
+      <el-form ref="formRef" :model="form" :rules="rules" class="drink-form">
         <el-form-item label="饮品图片" class="image-upload-item">
           <ImageUpload v-model="form.image" />
         </el-form-item>
@@ -249,9 +264,12 @@ async function handleBatchDelete() {
         </div>
         <div class="form-two-col">
           <el-form-item label="价格" prop="price">
-            <el-input-number v-model="form.price" :min="0" :precision="2" :step="1" style="width: 100%" />
+            <div class="price-input">
+              <span class="price-prefix">¥</span>
+              <el-input v-model="form.price" placeholder="0.00" />
+            </div>
           </el-form-item>
-          <el-form-item label="状态">
+          <el-form-item label="初始状态">
             <div class="switch-field">
               <div class="txt">起售</div>
               <span class="toggle" :class="{ on: form.status === 1 }" @click="form.status = form.status === 1 ? 0 : 1"></span>
@@ -267,7 +285,9 @@ async function handleBatchDelete() {
               <el-input v-model="flavor.name" placeholder="口味名" class="flavor-name-input" />
               <el-input v-model="flavor.value" placeholder="选项（逗号分隔）" class="flavor-value-input" />
               <el-button type="danger" link @click="removeFlavor(index)" class="flavor-del-btn">
-                <el-icon><Delete /></el-icon>
+                <el-icon>
+                  <Delete />
+                </el-icon>
               </el-button>
             </div>
             <el-button type="primary" link @click="addFlavor" class="add-flavor-btn">
@@ -278,135 +298,446 @@ async function handleBatchDelete() {
       </el-form>
       <template #footer>
         <el-button @click="drawerVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button type="primary" @click="handleSubmit">保存饮品</el-button>
       </template>
     </el-drawer>
   </div>
 </template>
 
 <style scoped>
-.page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; }
-.page-header h1 { font-size: 21px; font-weight: 600; }
-.page-header p { font-size: 13px; color: var(--ink-3); margin-top: 5px; }
-.filter-bar { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 18px; box-shadow: var(--shadow); }
-.category-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-.cat-tab { font-size: 13px; padding: 7px 15px; border-radius: 999px; cursor: pointer; color: var(--ink-2); background: var(--surface-2); border: 1px solid transparent; transition: all 0.15s; }
-.cat-tab:hover { color: var(--primary); }
-.cat-tab.active { background: var(--primary-weak); color: var(--primary); font-weight: 600; }
-.filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.batch-bar { display: flex; align-items: center; gap: 14px; padding: 11px 16px; margin-bottom: 14px; border-radius: var(--radius); background: var(--primary-weak); color: var(--primary); font-size: 13px; }
-.batch-bar b { font-family: var(--font-en); }
-.batch-actions { margin-left: auto; display: flex; gap: 8px; }
-.table-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
-.drink-info { display: flex; align-items: center; gap: 12px; }
-.drink-thumb { width: 46px; height: 46px; border-radius: var(--radius-sm); background: var(--primary-weak); display: grid; place-items: center; color: var(--primary); flex-shrink: 0; overflow: hidden; }
-.drink-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.drink-name { font-weight: 600; font-size: 14px; }
-.drink-desc { font-size: 12px; color: var(--ink-3); margin-top: 2px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cat-pill { display: inline-block; font-size: 12.5px; padding: 4px 11px; border-radius: var(--radius-sm); background: var(--primary-weak); color: var(--primary); font-weight: 500; }
-.price { font-family: var(--font-mono); font-weight: 600; font-size: 14px; color: var(--ink); }
-.price::before { content: '¥'; font-size: 11px; color: var(--ink-3); margin-right: 1px; }
-.flavors { display: flex; gap: 5px; flex-wrap: wrap; }
-.flavor-tag { display: inline-block; font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
-.pager { display: flex; align-items: center; padding: 16px; gap: 14px; }
-.pager-info { font-size: 13px; color: var(--ink-3); }
-.op-text { font-size: 13px; color: var(--primary); cursor: pointer; padding: 4px 8px; border-radius: 5px; }
-.op-text:hover { background: var(--primary-weak); }
-.op-text.del { color: var(--off); }
-.op-text.del:hover { background: var(--off-weak); }
-.op-sep { width: 1px; height: 12px; background: var(--line-strong); margin: 0 2px; display: inline-block; vertical-align: middle; }
-.toggle { width: 40px; height: 22px; border-radius: 999px; background: var(--line-strong); position: relative; cursor: pointer; transition: .18s; flex-shrink: 0; display: inline-block; vertical-align: middle; }
-.toggle.on { background: var(--ok); }
-.toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: .18s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
-.toggle.on::after { left: 20px; }
-.st-wrap { display: inline-flex; align-items: center; gap: 9px; }
-.st-wrap .txt { font-size: 13px; color: var(--ink-2); }
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.page-header h1 {
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.page-header p {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin-top: 5px;
+}
+
+.filter-bar {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow);
+}
+
+.category-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.cat-tab {
+  font-size: 13px;
+  padding: 7px 15px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.cat-tab:hover {
+  color: var(--primary);
+}
+
+.cat-tab.active {
+  background: var(--primary-weak);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* 筛选栏 input/select 尺寸覆盖 */
+.filter-row :deep(.el-input__wrapper),
+.filter-row :deep(.el-select__wrapper) {
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  padding: 0 12px !important;
+}
+
+.batch-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 16px;
+  margin-bottom: 14px;
+  border-radius: var(--radius);
+  background: var(--primary-weak);
+  color: var(--primary);
+  font-size: 13px;
+}
+
+.batch-bar b {
+  font-family: var(--font-en);
+}
+
+.batch-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.drink-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.drink-thumb {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-weak);
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.drink-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.drink-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.drink-desc {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 2px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cat-pill {
+  display: inline-block;
+  font-size: 12.5px;
+  padding: 4px 11px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-weak);
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.price {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.price::before {
+  content: '¥';
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-right: 1px;
+}
+
+.flavors {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.flavor-tag {
+  display: inline-block;
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 14px;
+}
+
+.pager-info {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.op-text {
+  font-size: 13px;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 5px;
+}
+
+.op-text:hover {
+  background: var(--primary-weak);
+}
+
+.op-text.del {
+  color: var(--off);
+}
+
+.op-text.del:hover {
+  background: var(--off-weak);
+}
+
+.op-sep {
+  width: 1px;
+  height: 12px;
+  background: var(--line-strong);
+  margin: 0 2px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.toggle {
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--line-strong);
+  position: relative;
+  cursor: pointer;
+  transition: .18s;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.toggle.on {
+  background: var(--ok);
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: .18s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+}
+
+.toggle.on::after {
+  left: 20px;
+}
+
+.st-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.st-wrap .txt {
+  font-size: 13px;
+  color: var(--ink-2);
+}
 
 /* ========== 抽屉样式覆盖，匹配原型 ========== */
 :deep(.el-drawer) {
   background: var(--bg) !important;
   box-shadow: var(--shadow-lg) !important;
 }
+
 :deep(.el-drawer__header) {
   padding: 22px 26px !important;
   margin-bottom: 0 !important;
   background: var(--surface) !important;
   border-bottom: 1px solid var(--line) !important;
 }
-:deep(.el-drawer__title) {
-  font-size: 18px !important;
-  font-weight: 600 !important;
-  color: var(--ink) !important;
-}
+
 :deep(.el-drawer__body) {
   padding: 24px 26px !important;
   background: var(--bg) !important;
 }
+
 :deep(.el-drawer__footer) {
   padding: 16px 26px !important;
   background: var(--surface) !important;
   border-top: 1px solid var(--line) !important;
+  justify-content: flex-end !important;
 }
 
-/* 表单项间距 */
-:deep(.el-form-item) {
-  margin-bottom: 20px !important;
+/* 抽屉标题（自定义 header slot） */
+.drawer-title-group {
+  display: flex;
+  flex-direction: column;
 }
-:deep(.el-form-item__label) {
+
+.drawer-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.drawer-subtitle {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  margin-top: 3px;
+}
+
+/* 表单项间距 — 垂直布局（label 在上，input 在下） */
+.drink-form :deep(.el-form-item) {
+  margin-bottom: 20px !important;
+  display: block !important;
+}
+
+.drink-form :deep(.el-form-item__label) {
+  display: block !important;
+  width: auto !important;
+  text-align: left !important;
+  padding: 0 0 9px 0 !important;
   font-size: 13px !important;
   color: var(--ink-2) !important;
   font-weight: 500 !important;
-  line-height: 40px !important;
+  line-height: 1.4 !important;
+  height: auto !important;
+  box-sizing: border-box !important;
+}
+
+.drink-form :deep(.el-form-item__content) {
+  margin-left: 0 !important;
+}
+
+.status-item :deep(.el-form-item__label) {
+  padding-bottom: 0 !important;
+  margin-bottom: -4px !important;
+}
+
+.switch-field-label {
+  font-size: 13px;
+  color: var(--ink-2);
+  font-weight: 500;
 }
 
 /* 输入框、选择器、文本域统一样式 */
 :deep(.el-input__wrapper),
-:deep(.el-select .el-input__wrapper),
+:deep(.el-select__wrapper),
 :deep(.el-textarea__inner) {
   background: var(--surface) !important;
   border: 1px solid var(--line-strong) !important;
   border-radius: var(--radius) !important;
   box-shadow: none !important;
-  padding: 11px 14px !important;
+  padding: 0 14px !important;
   font-family: var(--font-cn) !important;
   font-size: 14px !important;
   color: var(--ink) !important;
   transition: all 0.15s !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  box-sizing: border-box !important;
 }
+:deep(.el-input__inner) {
+  height: 100% !important;
+  line-height: 1 !important;
+}
+
 :deep(.el-input__wrapper:hover),
-:deep(.el-select .el-input__wrapper:hover),
+:deep(.el-select__wrapper:hover),
+:deep(.el-select__wrapper.is-hovering),
 :deep(.el-textarea__inner:hover) {
   border-color: var(--primary) !important;
 }
+
 :deep(.el-input__wrapper.is-focus),
-:deep(.el-select .el-input__wrapper.is-focus),
+:deep(.el-select__wrapper.is-focused),
 :deep(.el-textarea__inner:focus) {
   border-color: var(--primary) !important;
   box-shadow: 0 0 0 3px var(--primary-weak) !important;
 }
+
 :deep(.el-input__inner) {
   font-family: var(--font-cn) !important;
   font-size: 14px !important;
   color: var(--ink) !important;
 }
+
 :deep(.el-input__inner::placeholder) {
   color: var(--ink-3) !important;
 }
+
 :deep(.el-textarea__inner) {
   resize: vertical !important;
   min-height: 74px !important;
 }
 
-/* 数字输入框 */
-:deep(.el-input-number .el-input__wrapper) {
-  padding-left: 14px !important;
-  padding-right: 14px !important;
+/* 价格输入框（¥ 前缀） */
+.price-input {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 0 14px;
+  transition: 0.15s;
+  width: 100%;
+  height: 40px;
+  box-sizing: border-box;
 }
-:deep(.el-input-number .el-input-number__decrease),
-:deep(.el-input-number .el-input-number__increase) {
-  background: transparent !important;
+
+.price-input:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-weak);
+}
+
+.price-prefix {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+.price-input :deep(.el-input__wrapper) {
   border: none !important;
-  color: var(--ink-3) !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  background: transparent !important;
+  height: 100% !important;
+}
+
+.price-input :deep(.el-input__inner) {
+  font-family: var(--font-mono) !important;
 }
 
 /* 两列布局 */
@@ -416,21 +747,26 @@ async function handleBatchDelete() {
   gap: 14px;
 }
 
-/* 状态开关卡片 */
+/* 状态开关卡片 — 与 input 高度一致 */
 .switch-field {
   display: flex;
   align-items: center;
   gap: 12px;
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius);
-  padding: 13px 16px;
+  padding: 0 14px;
+  height: 40px;
+  box-sizing: border-box;
+  width: 100%;
 }
+
 .switch-field .txt {
   font-size: 13.5px;
   color: var(--ink);
   flex: 1;
 }
+
 .switch-field .txt small {
   display: block;
   color: var(--ink-3);
@@ -452,7 +788,11 @@ async function handleBatchDelete() {
   vertical-align: middle;
   margin-left: auto;
 }
-.toggle.on { background: var(--ok); }
+
+.toggle.on {
+  background: var(--ok);
+}
+
 .toggle::after {
   content: '';
   position: absolute;
@@ -463,9 +803,12 @@ async function handleBatchDelete() {
   border-radius: 50%;
   background: #fff;
   transition: .18s;
-  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
 }
-.toggle.on::after { left: 20px; }
+
+.toggle.on::after {
+  left: 20px;
+}
 
 /* 图片上传项 */
 .image-upload-item {
@@ -481,10 +824,12 @@ async function handleBatchDelete() {
   padding: 9px 16px !important;
   border-radius: var(--radius-sm) !important;
 }
+
 :deep(.el-button--primary:hover) {
   background: var(--primary-2) !important;
   border-color: var(--primary-2) !important;
 }
+
 :deep(.el-button--default) {
   background: var(--surface) !important;
   border: 1px solid var(--line-strong) !important;
@@ -493,14 +838,17 @@ async function handleBatchDelete() {
   padding: 9px 16px !important;
   border-radius: var(--radius-sm) !important;
 }
+
 :deep(.el-button--default:hover) {
   border-color: var(--primary) !important;
   color: var(--primary) !important;
 }
+
 :deep(.el-button--danger.is-link) {
   color: var(--off) !important;
   font-size: 13px !important;
 }
+
 :deep(.el-button--primary.is-link) {
   color: var(--primary) !important;
   font-size: 13.5px !important;
@@ -512,9 +860,11 @@ async function handleBatchDelete() {
   height: 34px !important;
   border-radius: 8px !important;
 }
+
 :deep(.el-drawer__close-btn:hover) {
   background: var(--surface-2) !important;
 }
+
 :deep(.el-drawer__close-btn .el-dialog__close) {
   font-size: 18px !important;
   color: var(--ink-2) !important;
@@ -524,6 +874,7 @@ async function handleBatchDelete() {
 .flavor-item {
   margin-bottom: 0 !important;
 }
+
 .flavor-list {
   display: flex;
   flex-direction: column;
@@ -531,21 +882,26 @@ async function handleBatchDelete() {
   margin-bottom: 12px;
   width: 100%;
 }
+
 .flavor-row {
   display: flex;
   gap: 10px;
   align-items: center;
 }
+
 .flavor-row :deep(.el-input__wrapper) {
   height: 40px !important;
 }
+
 .flavor-name-input {
   width: 120px !important;
   flex-shrink: 0;
 }
+
 .flavor-value-input {
   flex: 1;
 }
+
 .flavor-del-btn {
   width: 38px !important;
   height: 40px !important;
@@ -558,10 +914,12 @@ async function handleBatchDelete() {
   flex-shrink: 0;
   padding: 0 !important;
 }
+
 .flavor-del-btn:hover {
   background: var(--off-weak) !important;
   border-color: var(--off) !important;
 }
+
 .add-flavor-btn {
   width: 100% !important;
   border: 1.5px dashed var(--line-strong) !important;
@@ -575,6 +933,7 @@ async function handleBatchDelete() {
   justify-content: center !important;
   gap: 7px !important;
 }
+
 .add-flavor-btn:hover {
   background: var(--primary-weak) !important;
 }

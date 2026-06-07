@@ -314,7 +314,10 @@ function handleLogout() {
   border-radius: 999px;
   background: var(--surface-2);
   box-shadow: 0 0 0 1px var(--line) inset;
-  padding: 8px 14px;
+  padding: 0 14px;
+  height: 36px;
+  min-height: 36px;
+  max-height: 36px;
 }
 
 :deep(.search-pill .el-input__wrapper:hover) {
@@ -340,6 +343,8 @@ function handleLogout() {
   font-family: var(--font-cn);
   font-size: 13px;
   color: var(--ink);
+  height: 100%;
+  line-height: 1;
 }
 
 :deep(.search-pill .el-input__inner::placeholder) {
