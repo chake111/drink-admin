@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import request from '../utils/request.js'
@@ -55,49 +55,41 @@ async function handleLogin() {
     <div class="login-brand">
       <div class="brand-glow"></div>
       <div class="brand-content">
-        <div class="brand-logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/><path d="M12 14v8"/></svg>
+        <div class="brand-top">
+          <div class="brand-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/><path d="M12 14v8"/></svg>
+          </div>
+          <b class="brand-name">茶优选</b>
         </div>
-        <h1>饮品店订购系统管理后台</h1>
-        <p class="brand-slogan">让每一杯，都值得回味</p>
-        <div class="brand-features">
-          <div class="feature-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
-            <span>高效门店管理</span>
-          </div>
-          <div class="feature-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
-            <span>实时订单追踪</span>
-          </div>
-          <div class="feature-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
-            <span>智能数据分析</span>
-          </div>
+        <div class="brand-pitch">
+          <h2>饮品店订购系统<br>管理后台</h2>
+          <p>统一管理门店饮品、分类与订单，让每一杯都准时、对味地送到顾客手中。</p>
         </div>
+        <div class="brand-foot">© 2026 茶优选 · 餐饮管理平台 · 内部员工专用</div>
       </div>
     </div>
 
     <!-- 右侧登录表单 -->
     <div class="login-form-section">
-      <div class="login-form-wrapper">
-        <div class="form-header">
-          <h2>欢迎回来</h2>
-          <p>请登录您的员工账号</p>
-        </div>
+      <div class="login-card">
+        <h1>欢迎回来 👋</h1>
+        <p class="sub">请使用员工账号登录管理后台</p>
 
         <el-form :model="loginForm" @submit.prevent="handleLogin">
-          <el-form-item>
+          <div class="lf">
+            <label>账号</label>
             <el-input
               v-model="loginForm.account"
               placeholder="请输入员工账号"
               size="large"
             >
               <template #prefix>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
               </template>
             </el-input>
-          </el-form-item>
-          <el-form-item>
+          </div>
+          <div class="lf">
+            <label>密码</label>
             <el-input
               v-model="loginForm.password"
               type="password"
@@ -106,10 +98,10 @@ async function handleLogin() {
               show-password
             >
               <template #prefix>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               </template>
             </el-input>
-          </el-form-item>
+          </div>
 
           <div class="form-options">
             <el-checkbox v-model="rememberMe">记住我</el-checkbox>
@@ -129,9 +121,7 @@ async function handleLogin() {
           </el-form-item>
         </el-form>
 
-        <div class="form-footer">
-          <p class="demo-hint">演示账号：admin / 123456</p>
-        </div>
+        <p class="demo-hint">演示账号已预填，点击「登录」直接进入</p>
       </div>
     </div>
   </div>
@@ -139,89 +129,92 @@ async function handleLogin() {
 
 <style scoped>
 .login-page {
-  min-height: 100vh;
+  position: fixed;
+  inset: 0;
   display: flex;
+  background: var(--bg);
+  z-index: 100;
 }
 
 /* 左侧品牌区 */
 .login-brand {
   width: 46%;
   background: var(--side-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #F3E9DF;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 54px 56px;
 }
 
 .brand-glow {
   position: absolute;
-  width: 500px;
-  height: 500px;
+  right: -120px;
+  bottom: -120px;
+  width: 420px;
+  height: 420px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(166, 100, 60, 0.3) 0%, transparent 70%);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(166, 100, 60, 0.45), transparent 68%);
 }
 
 .brand-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
   position: relative;
-  z-index: 1;
-  text-align: center;
-  color: var(--side-fg);
+  z-index: 2;
+}
+
+.brand-top {
+  display: flex;
+  align-items: center;
+  gap: 13px;
 }
 
 .brand-logo {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 24px;
-  border-radius: 20px;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
   background: var(--primary);
   color: #fff;
   display: grid;
   place-items: center;
+  flex-shrink: 0;
 }
 
 .brand-logo svg {
-  width: 44px;
-  height: 44px;
+  width: 26px;
+  height: 26px;
 }
 
-.brand-content h1 {
-  font-size: 32px;
+.brand-name {
+  font-family: var(--font-en), sans-serif;
+  font-size: 21px;
+  letter-spacing: 0.01em;
+}
+
+.brand-pitch h2 {
+  font-size: 34px;
   font-weight: 700;
-  color: #fff;
-  margin-bottom: 8px;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: #F3E9DF;
 }
 
-.brand-slogan {
-  font-size: 16px;
-  opacity: 0.7;
-  margin-bottom: 40px;
-}
-
-.brand-features {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  align-items: flex-start;
-  margin-left: 80px;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.brand-pitch p {
+  color: #C2AD9C;
   font-size: 15px;
-  opacity: 0.8;
+  margin-top: 16px;
+  max-width: 340px;
+  line-height: 1.7;
 }
 
-.feature-item svg {
-  width: 20px;
-  height: 20px;
-  color: var(--primary);
-  flex-shrink: 0;
+.brand-foot {
+  color: #8C7868;
+  font-size: 12.5px;
 }
 
 /* 右侧表单区 */
@@ -230,58 +223,62 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--surface);
+  padding: 40px;
 }
 
-.login-form-wrapper {
-  width: 400px;
-  padding: 0 20px;
+.login-card {
+  width: 100%;
+  max-width: 360px;
 }
 
-.form-header {
-  margin-bottom: 36px;
-}
-
-.form-header h2 {
-  font-size: 28px;
-  font-weight: 700;
+.login-card h1 {
+  font-size: 25px;
+  font-weight: 600;
   color: var(--ink);
-  margin-bottom: 8px;
 }
 
-.form-header p {
-  font-size: 15px;
+.login-card .sub {
   color: var(--ink-3);
+  font-size: 14px;
+  margin-top: 8px;
+  margin-bottom: 34px;
+}
+
+.lf {
+  margin-bottom: 18px;
+}
+
+.lf label {
+  display: block;
+  font-size: 13px;
+  color: var(--ink-2);
+  margin-bottom: 8px;
+  font-weight: 500;
 }
 
 .form-options {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  font-size: 13px;
+  margin-bottom: 26px;
 }
 
 .forgot-link {
-  font-size: 14px;
   color: var(--primary);
   text-decoration: none;
+  font-size: 13px;
 }
 
 .forgot-link:hover {
   text-decoration: underline;
 }
 
-.form-footer {
-  margin-top: 24px;
-  text-align: center;
-}
-
 .demo-hint {
-  font-size: 13px;
+  margin-top: 18px;
+  text-align: center;
+  font-size: 12px;
   color: var(--ink-3);
-  background: var(--surface-2);
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
 }
 
 /* 输入框内图标样式 */
@@ -291,9 +288,19 @@ async function handleLogin() {
 }
 
 :deep(.el-input__prefix svg) {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   color: var(--ink-3);
+}
+
+:deep(.el-input__wrapper) {
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+
+/* 消除 el-form-item 额外间距，由 .lf 控制 */
+:deep(.el-form-item) {
+  margin-bottom: 0;
 }
 
 /* 响应式：小屏幕隐藏品牌区 */

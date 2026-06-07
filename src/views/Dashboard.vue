@@ -7,11 +7,20 @@ const todayData = ref({
   todayOrders: 0,
   todayAmount: 0,
   pendingOrders: 0,
+  waitingOrders: 0,   // 待接单数
+  makingOrders: 0,    // 制作中数
   completedOrders: 0,
+  avgOrderValue: 0,   // 客单价
   ordersChange: 0,    // 订单环比变化
   amountChange: 0,    // 营收环比变化
   pendingChange: 0,   // 待接单环比变化
   completedChange: 0  // 已完成环比变化
+})
+
+// 客单价 = 营业额 / 订单数
+const avgOrderDisplay = computed(() => {
+  if (!todayData.value.todayOrders) return '0.00'
+  return (todayData.value.todayAmount / todayData.value.todayOrders).toFixed(2)
 })
 
 const trendData = ref([])
@@ -157,6 +166,8 @@ onMounted(async () => {
         todayOrders: d.todayOrders ?? 0,
         todayAmount: d.todayAmount ?? 0,
         pendingOrders: d.pendingOrders ?? 0,
+        waitingOrders: d.waitingOrders ?? 0,
+        makingOrders: d.makingOrders ?? 0,
         completedOrders: d.completedOrders ?? 0,
         ordersChange: d.ordersChange ?? 0,
         amountChange: d.amountChange ?? 0,
@@ -196,64 +207,54 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 数据卡片 -->
-    <div class="stat-cards">
-      <div class="stat-card">
-        <div class="stat-icon orders">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2 6 6H2"/><path d="M2 6h20l-2 13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2L2 6Z"/></svg>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>
-        <div class="stat-info">
-          <span class="stat-label">今日订单</span>
-          <span class="stat-value">{{ todayData.todayOrders }}</span>
-          <span class="stat-change" :class="{ up: todayData.ordersChange > 0, down: todayData.ordersChange < 0 }" v-if="todayData.ordersChange != null && todayData.ordersChange !== 0">
-            <svg v-if="todayData.ordersChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-            {{ Math.abs(todayData.ordersChange ?? 0) }}%
-          </span>
+        <div class="kpi-label">今日营业额</div>
+        <div class="kpi-value"><span class="yen">&yen;</span>{{ Number(todayData.todayAmount || 0).toFixed(2).split('.')[0] }}<small>.{{ Number(todayData.todayAmount || 0).toFixed(2).split('.')[1] }}</small></div>
+        <div class="kpi-delta" :class="{ up: todayData.amountChange > 0, down: todayData.amountChange < 0 }" v-if="todayData.amountChange != null && todayData.amountChange !== 0">
+          <svg v-if="todayData.amountChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7 17 17M17 7v10H7"/></svg>
+          较昨日 {{ Math.abs(todayData.amountChange ?? 0) }}%
         </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-icon amount">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <div class="kpi">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2 6 6H2"/><path d="M2 6h20l-2 13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2L2 6Z"/><path d="M9 11v5"/><path d="M15 11v5"/></svg>
         </div>
-        <div class="stat-info">
-          <span class="stat-label">今日营收</span>
-          <span class="stat-value">&yen;{{ Number(todayData.todayAmount || 0).toFixed(2) }}</span>
-          <span class="stat-change" :class="{ up: todayData.amountChange > 0, down: todayData.amountChange < 0 }" v-if="todayData.amountChange != null && todayData.amountChange !== 0">
-            <svg v-if="todayData.amountChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-            {{ Math.abs(todayData.amountChange ?? 0) }}%
-          </span>
+        <div class="kpi-label">今日订单数</div>
+        <div class="kpi-value">{{ todayData.todayOrders }}</div>
+        <div class="kpi-delta" :class="{ up: todayData.ordersChange > 0, down: todayData.ordersChange < 0 }" v-if="todayData.ordersChange != null && todayData.ordersChange !== 0">
+          <svg v-if="todayData.ordersChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7 17 17M17 7v10H7"/></svg>
+          较昨日 {{ Math.abs(todayData.ordersChange ?? 0) }}%
         </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-icon pending">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div class="kpi">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
         </div>
-        <div class="stat-info">
-          <span class="stat-label">待接单</span>
-          <span class="stat-value">{{ todayData.pendingOrders }}</span>
-          <span class="stat-change" :class="{ up: todayData.pendingChange > 0, down: todayData.pendingChange < 0 }" v-if="todayData.pendingChange != null && todayData.pendingChange !== 0">
-            <svg v-if="todayData.pendingChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-            {{ Math.abs(todayData.pendingChange ?? 0) }}%
-          </span>
+        <div class="kpi-label">待处理订单</div>
+        <div class="kpi-value">{{ todayData.pendingOrders }}</div>
+        <div class="kpi-delta down" v-if="todayData.pendingOrders > 0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7 17 17M17 7v10H7"/></svg>
+          待接单 {{ todayData.waitingOrders }} · 制作中 {{ todayData.makingOrders }}
         </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-icon completed">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <div class="kpi">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
         </div>
-        <div class="stat-info">
-          <span class="stat-label">已完成</span>
-          <span class="stat-value">{{ todayData.completedOrders }}</span>
-          <span class="stat-change" :class="{ up: todayData.completedChange > 0, down: todayData.completedChange < 0 }" v-if="todayData.completedChange != null && todayData.completedChange !== 0">
-            <svg v-if="todayData.completedChange > 0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-            {{ Math.abs(todayData.completedChange ?? 0) }}%
-          </span>
+        <div class="kpi-label">客单价</div>
+        <div class="kpi-value"><span class="yen">&yen;</span>{{ avgOrderDisplay.split('.')[0] }}<small>.{{ avgOrderDisplay.split('.')[1] }}</small></div>
+        <div class="kpi-delta up" v-if="todayData.todayOrders > 0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          今日 {{ todayData.todayOrders }} 单
         </div>
       </div>
     </div>
@@ -303,107 +304,91 @@ onBeforeUnmount(() => {
   margin-top: 5px;
 }
 
-.stat-cards {
+/* KPI 卡片 — 原型对齐 */
+.kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-  margin-bottom: 18px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
-.stat-card {
+.kpi {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
   box-shadow: var(--shadow);
-  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
 }
 
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(58,40,28,.1);
-}
-
-.stat-icon {
-  width: 48px;
-  height: 48px;
+.kpi-icon {
+  width: 42px;
+  height: 42px;
   border-radius: 12px;
   display: grid;
   place-items: center;
-  flex-shrink: 0;
-}
-
-.stat-icon svg {
-  width: 24px;
-  height: 24px;
-}
-
-.stat-icon.orders {
   background: var(--primary-weak);
   color: var(--primary);
+  margin-bottom: 14px;
 }
 
-.stat-icon.amount {
-  background: var(--ok-weak);
-  color: var(--ok);
+.kpi-icon svg {
+  width: 21px;
+  height: 21px;
 }
 
-.stat-icon.pending {
-  background: var(--warn-weak);
-  color: var(--warn);
-}
-
-.stat-icon.completed {
-  background: var(--ok-weak);
-  color: var(--ok);
-}
-
-.stat-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-label {
+.kpi-label {
   font-size: 13px;
   color: var(--ink-3);
 }
 
-.stat-value {
-  font-size: 24px;
+.kpi-value {
+  font-family: var(--font-en);
+  font-size: 30px;
   font-weight: 700;
   color: var(--ink);
-  font-family: var(--font-en);
+  margin-top: 4px;
+  letter-spacing: -0.01em;
 }
 
-.stat-change {
+.kpi-value .yen {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-right: 2px;
+}
+
+.kpi-value small {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.kpi-delta {
+  font-size: 12.5px;
+  margin-top: 8px;
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  font-size: 12px;
-  font-weight: 500;
-  margin-top: 4px;
-  font-family: var(--font-en);
+  gap: 4px;
 }
 
-.stat-change svg {
-  width: 14px;
-  height: 14px;
+.kpi-delta svg {
+  width: 13px;
+  height: 13px;
 }
 
-.stat-change.up {
+.kpi-delta.up {
   color: var(--ok);
 }
 
-.stat-change.down {
-  color: var(--el-color-danger, #F56C6C);
+.kpi-delta.down {
+  color: var(--off);
 }
 
 .chart-row {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 360px;
   gap: 18px;
 }
 
@@ -510,7 +495,7 @@ onBeforeUnmount(() => {
 
 /* 响应式布局 */
 @media (max-width: 1200px) {
-  .stat-cards {
+  .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -520,7 +505,7 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 768px) {
-  .stat-cards {
+  .kpi-grid {
     grid-template-columns: 1fr;
   }
 

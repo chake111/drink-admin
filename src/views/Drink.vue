@@ -196,26 +196,29 @@ async function handleBatchDelete() {
           <template #default="{ row }"><span class="cat-pill">{{ row.categoryName }}</span></template>
         </el-table-column>
         <el-table-column label="价格" width="100">
-          <template #default="{ row }"><span class="price">&yen;{{ row.price?.toFixed(2) }}</span></template>
+          <template #default="{ row }"><span class="price">{{ row.price?.toFixed(2) }}</span></template>
         </el-table-column>
         <el-table-column label="口味规格" min-width="180">
           <template #default="{ row }">
             <div class="flavors"><span v-for="f in row.flavors" :key="f.name" class="flavor-tag">{{ f.name }}</span></div>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <el-table-column label="状态" width="130">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">{{ row.status === 1 ? '起售' : '停售' }}</el-tag>
+            <span class="st-wrap">
+              <span class="toggle" :class="{ on: row.status === 1 }" @click="handleStatusChange(row.id, row.status === 1 ? 0 : 1)"></span>
+              <span class="txt">{{ row.status === 1 ? '起售' : '停售' }}</span>
+            </span>
           </template>
         </el-table-column>
         <el-table-column label="更新时间" width="160">
           <template #default="{ row }">{{ formatTime(row.updateTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="140" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="primary" size="small" @click="handleStatusChange(row.id, row.status === 1 ? 0 : 1)">{{ row.status === 1 ? '停售' : '起售' }}</el-button>
-            <el-button link type="danger" size="small" @click="handleDelete(row.id)">删除</el-button>
+            <span class="op-text" @click="handleEdit(row)">编辑</span>
+            <span class="op-sep"></span>
+            <span class="op-text del" @click="handleDelete(row.id)">删除</span>
           </template>
         </el-table-column>
       </el-table>
@@ -226,7 +229,7 @@ async function handleBatchDelete() {
     </div>
 
     <!-- 新增/编辑抽屉 -->
-    <el-drawer v-model="drawerVisible" :title="drawerTitle" size="520px">
+    <el-drawer v-model="drawerVisible" :title="drawerTitle" size="540px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="饮品名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入饮品名称" />
@@ -284,9 +287,21 @@ async function handleBatchDelete() {
 .drink-name { font-weight: 600; font-size: 14px; }
 .drink-desc { font-size: 12px; color: var(--ink-3); margin-top: 2px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cat-pill { display: inline-block; font-size: 12.5px; padding: 4px 11px; border-radius: var(--radius-sm); background: var(--primary-weak); color: var(--primary); font-weight: 500; }
-.price { font-family: var(--font-mono); font-weight: 600; font-size: 14px; }
+.price { font-family: var(--font-mono); font-weight: 600; font-size: 14px; color: var(--ink); }
+.price::before { content: '¥'; font-size: 11px; color: var(--ink-3); margin-right: 1px; }
 .flavors { display: flex; gap: 5px; flex-wrap: wrap; }
 .flavor-tag { display: inline-block; font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
 .pager { display: flex; align-items: center; padding: 16px; gap: 14px; }
 .pager-info { font-size: 13px; color: var(--ink-3); }
+.op-text { font-size: 13px; color: var(--primary); cursor: pointer; padding: 4px 8px; border-radius: 5px; }
+.op-text:hover { background: var(--primary-weak); }
+.op-text.del { color: var(--off); }
+.op-text.del:hover { background: var(--off-weak); }
+.op-sep { width: 1px; height: 12px; background: var(--line-strong); margin: 0 2px; display: inline-block; vertical-align: middle; }
+.toggle { width: 40px; height: 22px; border-radius: 999px; background: var(--line-strong); position: relative; cursor: pointer; transition: .18s; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+.toggle.on { background: var(--ok); }
+.toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: .18s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.toggle.on::after { left: 20px; }
+.st-wrap { display: inline-flex; align-items: center; gap: 9px; }
+.st-wrap .txt { font-size: 13px; color: var(--ink-2); }
 </style>

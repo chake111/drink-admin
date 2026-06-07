@@ -6,25 +6,10 @@ import { usePendingOrders } from '../composables/usePendingOrders'
 const router = useRouter()
 const route = useRoute()
 
-const isCollapse = ref(false)
 const { pendingCount } = usePendingOrders()
 
 // 搜索
-const showSearch = ref(false)
 const searchQuery = ref('')
-
-// 通知
-const notifications = ref([])
-const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
-
-function toggleSearch() {
-  showSearch.value = !showSearch.value
-  if (!showSearch.value) searchQuery.value = ''
-}
-
-function markAllRead() {
-  notifications.value.forEach(n => n.read = true)
-}
 
 const menuList = [
   {
@@ -69,6 +54,7 @@ function handleMenuClick(path) {
 }
 
 function handleLogout() {
+  if (!confirm('退出登录？')) return
   localStorage.removeItem('admin_token')
   localStorage.removeItem('admin_info')
   router.push('/login')
@@ -78,12 +64,12 @@ function handleLogout() {
 <template>
   <div class="admin-layout">
     <!-- 左侧菜单栏 -->
-    <aside class="sidebar" :class="{ collapsed: isCollapse }">
+    <aside class="sidebar">
       <div class="brand">
         <div class="logo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l-1 7a5 5 0 0 1-10 0L6 2Z"/><path d="M6 8H4a2 2 0 0 0 0 4h2"/><path d="M5 22h14"/><path d="M12 14v8"/></svg>
         </div>
-        <div v-show="!isCollapse" class="brand-text">
+        <div class="brand-text">
           <span class="brand-name">茶优选</span>
           <span class="brand-sub">餐饮管理后台</span>
         </div>
@@ -91,7 +77,7 @@ function handleLogout() {
 
       <nav class="nav-menu">
         <div v-for="group in menuList" :key="group.group" class="menu-group">
-          <div v-show="!isCollapse" class="group-title">{{ group.group }}</div>
+          <div class="group-title">{{ group.group }}</div>
           <div
             v-for="item in group.items"
             :key="item.path"
@@ -106,7 +92,7 @@ function handleLogout() {
               <svg v-else-if="item.icon === 'order'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2 6 6H2"/><path d="M2 6h20l-2 13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2L2 6Z"/><path d="M9 11v5"/><path d="M15 11v5"/></svg>
               <svg v-else-if="item.icon === 'employee'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
             </span>
-            <span v-show="!isCollapse" class="menu-text">{{ item.title }}</span>
+            <span class="menu-text">{{ item.title }}</span>
             <span v-if="item.path === '/order' && pendingCount > 0" class="menu-badge">
               <span class="menu-badge-count">{{ pendingCount }}</span>
             </span>
@@ -115,7 +101,8 @@ function handleLogout() {
       </nav>
 
       <div class="sidebar-footer">
-        <span class="version">v1.0</span>
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <span>v1.0</span>
       </div>
     </aside>
 
@@ -123,67 +110,29 @@ function handleLogout() {
     <div class="main-area">
       <!-- 顶部导航栏 -->
       <header class="topbar">
-        <div class="topbar-left">
-          <el-icon class="collapse-btn" @click="isCollapse = !isCollapse">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          </el-icon>
-          <div class="breadcrumb">
-            <span v-for="(item, index) in breadcrumb" :key="index">
-              <span v-if="index > 0" class="sep">/</span>
-              <span :class="{ current: index === breadcrumb.length - 1 }">{{ item }}</span>
-            </span>
-          </div>
+        <div class="crumb">
+          <span v-for="(item, index) in breadcrumb" :key="index">
+            <span v-if="index > 0"> / </span>
+            <b v-if="index === breadcrumb.length - 1">{{ item }}</b>
+            <span v-else>{{ item }}</span>
+          </span>
         </div>
-
+        <div class="search-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input v-model="searchQuery" placeholder="搜索…">
+        </div>
         <div class="topbar-right">
-          <!-- 搜索 -->
-          <div class="search-box" v-if="showSearch">
-            <input v-model="searchQuery" placeholder="搜索功能、订单、饮品..." autofocus @keyup.esc="toggleSearch" />
-            <span class="search-close" @click="toggleSearch">&times;</span>
+          <div class="icon-btn" title="通知">
+            <span class="ping"></span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           </div>
-          <el-icon v-else class="topbar-icon" @click="toggleSearch">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          </el-icon>
-
-          <!-- 通知铃铛 -->
-          <el-dropdown trigger="click" @command="markAllRead" placement="bottom-end">
-            <el-icon class="topbar-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-              <span class="notify-badge" v-if="unreadCount">{{ unreadCount }}</span>
-            </el-icon>
-            <template #dropdown>
-              <el-dropdown-menu class="notify-dropdown">
-                <div class="notify-header">
-                  <span>通知</span>
-                  <el-button link type="primary" size="small" @click.stop="markAllRead">全部已读</el-button>
-                </div>
-                <div v-for="n in notifications" :key="n.id" class="notify-item" :class="{ unread: !n.read }">
-                  <div class="notify-text">{{ n.text }}</div>
-                  <div class="notify-time">{{ n.time }}</div>
-                </div>
-                <div v-if="notifications.length === 0" class="notify-empty">暂无通知</div>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-
-          <div class="user-info">
+          <div class="user-area" @click="handleLogout" title="点击退出登录">
             <div class="user-avatar">{{ userInfo.name?.charAt(0) || '管' }}</div>
             <div class="user-detail">
               <span class="user-name">{{ userInfo.name }}</span>
               <span class="user-role">{{ userInfo.role }}</span>
             </div>
           </div>
-          <el-dropdown @command="handleLogout">
-            <span class="logout-btn">
-              退出
-              <el-icon><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></el-icon>
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item>退出登录</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
         </div>
       </header>
 
@@ -214,9 +163,6 @@ function handleLogout() {
   overflow: hidden;
 }
 
-.sidebar.collapsed {
-  width: 64px;
-}
 
 .brand {
   display: flex;
@@ -320,6 +266,9 @@ function handleLogout() {
   border-top: 1px solid rgba(255,255,255,0.07);
   font-size: 12px;
   color: var(--side-fg-dim);
+  display: flex;
+  align-items: center;
+  gap: 9px;
 }
 
 /* 主区域 */
@@ -342,63 +291,57 @@ function handleLogout() {
   gap: 16px;
 }
 
-.topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.collapse-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: var(--ink-2);
-  cursor: pointer;
-}
-
-.collapse-btn:hover {
-  background: var(--surface-2);
-}
-
-.collapse-btn svg {
-  width: 18px;
-  height: 18px;
-}
-
-.breadcrumb {
+.crumb {
   font-size: 13px;
   color: var(--ink-3);
 }
 
-.breadcrumb .sep {
-  margin: 0 8px;
-}
-
-.breadcrumb .current {
+.crumb b {
   color: var(--ink);
   font-weight: 600;
+}
+
+.search-pill {
+  margin-left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 240px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 14px;
+  color: var(--ink-3);
+}
+
+.search-pill svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.search-pill input {
+  border: 0;
+  background: transparent;
+  outline: 0;
+  font-family: var(--font-cn);
+  font-size: 13px;
+  color: var(--ink);
+  width: 100%;
+}
+
+.search-pill input::placeholder {
+  color: var(--ink-3);
 }
 
 .topbar-right {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  padding-left: 18px;
-  border-left: 1px solid var(--line);
-}
-
-/* 顶栏图标 */
-.topbar-icon {
+.icon-btn {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -407,131 +350,35 @@ function handleLogout() {
   color: var(--ink-2);
   cursor: pointer;
   position: relative;
-  transition: background 0.15s;
 }
 
-.topbar-icon:hover {
+.icon-btn:hover {
   background: var(--surface-2);
-  color: var(--ink);
 }
 
-.topbar-icon svg {
+.icon-btn svg {
   width: 18px;
   height: 18px;
 }
 
-/* 通知红点 */
-.notify-badge {
+.icon-btn .ping {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 8px;
-  background: var(--el-color-danger);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 600;
-  display: grid;
-  place-items: center;
-  padding: 0 4px;
-  line-height: 1;
+  top: 8px;
+  right: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--surface);
 }
 
-/* 搜索框 */
-.search-box {
+.user-area {
   display: flex;
   align-items: center;
-  background: var(--surface-2);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-  padding: 0 12px;
-  height: 36px;
-  width: 240px;
-  transition: border-color 0.15s;
-}
-
-.search-box:focus-within {
-  border-color: var(--primary);
-}
-
-.search-box input {
-  flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 13px;
-  color: var(--ink);
-}
-
-.search-box input::placeholder {
-  color: var(--ink-3);
-}
-
-.search-close {
-  font-size: 18px;
-  color: var(--ink-3);
+  gap: 10px;
   cursor: pointer;
-  padding: 0 2px;
-}
-
-.search-close:hover {
-  color: var(--ink);
-}
-
-/* 通知下拉 */
-.notify-dropdown {
-  width: 320px;
-  padding: 0;
-}
-
-.notify-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px 10px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink);
-  border-bottom: 1px solid var(--line);
-}
-
-.notify-item {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--line);
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.notify-item:last-child {
-  border-bottom: none;
-}
-
-.notify-item:hover {
-  background: var(--surface-2);
-}
-
-.notify-item.unread {
-  background: var(--primary-weak);
-}
-
-.notify-text {
-  font-size: 13px;
-  color: var(--ink);
-  line-height: 1.5;
-}
-
-.notify-time {
-  font-size: 11px;
-  color: var(--ink-3);
-  margin-top: 4px;
-}
-
-.notify-empty {
-  padding: 24px;
-  text-align: center;
-  font-size: 13px;
-  color: var(--ink-3);
+  padding-left: 16px;
+  border-left: 1px solid var(--line);
 }
 
 .user-avatar {
@@ -560,24 +407,6 @@ function handleLogout() {
 .user-role {
   font-size: 11px;
   color: var(--ink-3);
-}
-
-.logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  color: var(--ink-2);
-  cursor: pointer;
-}
-
-.logout-btn:hover {
-  color: var(--primary);
-}
-
-.logout-btn svg {
-  width: 14px;
-  height: 14px;
 }
 
 /* 内容区域 */

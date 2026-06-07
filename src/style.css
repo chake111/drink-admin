@@ -23,20 +23,22 @@
   --ink-2: #7A6A5D;
   --ink-3: #A8988B;
   --primary: #A6643C;
+  --primary-2: #8A5230;
   --primary-weak: #F2E4D8;
   --primary-ink: #fff;
   --line: #EBE2D7;
   --line-strong: #E0D3C5;
   --ok: #5E8A55;
   --ok-weak: #E7F0E3;
-  --warn: #F57C00;
-  --warn-weak: #FFF3E0;
+  --warn: #C68A2E;
+  --warn-weak: #F7EDD9;
   --off: #B0928A;
   --off-weak: #F0E8E5;
   --radius: 10px;
   --radius-sm: 7px;
   --radius-lg: 14px;
   --shadow: 0 1px 2px rgba(58,40,28,.05), 0 6px 20px rgba(58,40,28,.06);
+  --shadow-lg: 0 12px 40px rgba(58,40,28,.16);
 }
 
 body {
@@ -61,10 +63,10 @@ body {
 .el-button--primary {
   --el-button-bg-color: var(--primary);
   --el-button-border-color: var(--primary);
-  --el-button-hover-bg-color: var(--primary);
-  --el-button-hover-border-color: var(--primary);
-  --el-button-active-bg-color: var(--primary);
-  --el-button-active-border-color: var(--primary);
+  --el-button-hover-bg-color: var(--primary-2);
+  --el-button-hover-border-color: var(--primary-2);
+  --el-button-active-bg-color: var(--primary-2);
+  --el-button-active-border-color: var(--primary-2);
 }
 
 .el-pagination {

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import request from '../utils/request.js'
 import { formatTime } from '../utils/format.js'
 
@@ -10,11 +10,11 @@ const total = ref(0)
 const queryParams = ref({ page: 1, pageSize: 10, orderNo: '', status: null })
 
 const statusMap = {
-  1: { label: '待接单', type: 'warning' },
-  2: { label: '制作中', type: '' },
-  3: { label: '待取餐', type: 'primary' },
-  4: { label: '已完成', type: 'success' },
-  5: { label: '已取消', type: 'info' }
+  1: { label: '待接单', cls: 'ob-wait' },
+  2: { label: '制作中', cls: 'ob-making' },
+  3: { label: '待取餐', cls: 'ob-ready' },
+  4: { label: '已完成', cls: 'ob-done' },
+  5: { label: '已取消', cls: 'ob-cancel' }
 }
 
 // 时间线步骤配置
@@ -148,9 +148,9 @@ async function handleDetail(row) {
         <el-table-column label="金额" width="100">
           <template #default="{ row }"><span class="price">&yen;{{ row.amount?.toFixed(2) }}</span></template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <el-table-column label="状态" width="120">
           <template #default="{ row }">
-            <el-tag :type="statusMap[row.status]?.type" size="small">{{ statusMap[row.status]?.label }}</el-tag>
+            <span class="obadge" :class="statusMap[row.status]?.cls"><i></i>{{ statusMap[row.status]?.label }}</span>
           </template>
         </el-table-column>
         <el-table-column label="取餐方式" prop="pickupType" width="100" />
@@ -187,9 +187,7 @@ async function handleDetail(row) {
       <template v-if="currentOrder">
         <!-- 当前状态 -->
         <div class="detail-status">
-          <el-tag :type="statusMap[currentOrder.status]?.type" size="large" effect="dark">
-            {{ statusMap[currentOrder.status]?.label }}
-          </el-tag>
+          <span class="obadge" :class="statusMap[currentOrder.status]?.cls"><i></i>{{ statusMap[currentOrder.status]?.label }}</span>
         </div>
 
         <!-- 客户信息 -->
@@ -312,6 +310,15 @@ async function handleDetail(row) {
 .table-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
 .price { font-family: var(--font-mono); font-weight: 600; color: var(--primary); }
 
+/* 订单状态徽章 — 与原型 .obadge 一致 */
+.obadge { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 4px 11px; border-radius: 999px; font-weight: 500; white-space: nowrap; }
+.obadge i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; font-style: normal; }
+.ob-wait { background: var(--warn-weak); color: var(--warn); }
+.ob-making { background: #E4ECF5; color: #4B79A8; }
+.ob-ready { background: var(--ok-weak); color: var(--ok); }
+.ob-done { background: var(--surface-2); color: var(--ink-3); }
+.ob-cancel { background: var(--off-weak); color: var(--off); }
+
 /* 客户信息单元格 */
 .customer-cell { display: flex; align-items: center; gap: 8px; }
 .customer-avatar {
@@ -384,14 +391,14 @@ async function handleDetail(row) {
 }
 
 .timeline-item.cancelled .timeline-dot.cancel {
-  background: var(--el-color-danger); border-color: var(--el-color-danger); color: #fff;
+  background: var(--off); border-color: var(--off); color: #fff;
 }
 .timeline-item.cancelled .timeline-dot.cancel svg { display: block; }
 
 .timeline-content { flex: 1; min-height: 24px; display: flex; flex-direction: column; justify-content: center; }
 .timeline-title { font-size: 14px; font-weight: 500; color: var(--ink); }
 .timeline-time { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
-.timeline-desc { font-size: 12px; color: var(--el-color-danger); margin-top: 2px; }
+.timeline-desc { font-size: 12px; color: var(--off); margin-top: 2px; }
 
 /* 商品明细 */
 .detail-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
