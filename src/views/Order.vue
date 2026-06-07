@@ -125,7 +125,7 @@ async function handleDetail(row) {
         <span class="status-tab" :class="{ active: queryParams.status === 5 }" @click="queryParams.status = 5; handleSearch()">已取消</span>
       </div>
       <div class="filter-row">
-        <el-input v-model="queryParams.orderNo" placeholder="订单号" clearable style="width: 200px" @clear="handleSearch" @keyup.enter="handleSearch" />
+        <el-input v-model="queryParams.orderNo" placeholder="订单号"  @clear="handleSearch" @keyup.enter="handleSearch" />
         <el-button @click="handleReset">重置</el-button>
         <el-button type="primary" @click="handleSearch">查询</el-button>
       </div>
@@ -133,11 +133,11 @@ async function handleDetail(row) {
 
     <div class="table-card">
       <el-table :data="tableData" v-loading="loading">
-        <el-table-column label="取餐号" width="80">
+        <el-table-column label="取餐号" width="70">
           <template #default="{ row }"><b class="en" style="font-size:15px;color:var(--primary)">{{ row.pickupNo }}</b></template>
         </el-table-column>
-        <el-table-column label="订单号" prop="orderNo" width="150" />
-        <el-table-column label="顾客" width="180">
+        <el-table-column label="订单号" prop="orderNo"  />
+        <el-table-column label="顾客" width="150">
           <template #default="{ row }">
             <div class="ocust">
               <span class="oav">{{ (row.userName || '?').charAt(0) }}</span>
@@ -148,7 +148,7 @@ async function handleDetail(row) {
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="商品" min-width="200">
+        <el-table-column label="商品" show-overflow-tooltip width="150">
           <template #default="{ row }">
             <div v-for="item in row.details" :key="item.drinkName" class="order-item">
               {{ item.drinkName }} x{{ item.quantity }}
@@ -156,21 +156,21 @@ async function handleDetail(row) {
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="金额" width="100">
+        <el-table-column label="金额">
           <template #default="{ row }"><span class="price">&yen;{{ row.amount?.toFixed(2) }}</span></template>
         </el-table-column>
-        <el-table-column label="取餐方式" width="100">
+        <el-table-column label="取餐方式" >
           <template #default="{ row }">{{ row.pickupType || '-' }}</template>
         </el-table-column>
-        <el-table-column label="状态" width="120">
+        <el-table-column label="状态">
           <template #default="{ row }">
             <span class="obadge" :class="statusMap[row.status]?.cls"><i></i>{{ statusMap[row.status]?.label }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="下单时间" width="180">
+        <el-table-column label="下单时间">
           <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" fixed="right" width="150">
           <template #default="{ row }">
             <el-button v-if="row.status === 1" link type="primary" size="small" @click="handleConfirm(row.id)">接单</el-button>
             <el-button v-if="row.status === 2" link type="primary" size="small" @click="handleComplete(row.id)">完成制作</el-button>
