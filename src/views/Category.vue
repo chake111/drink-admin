@@ -62,7 +62,8 @@ async function handleSubmit() {
       await request.put('/category', form.value)
       ElMessage.success('修改成功')
     } else {
-      await request.post('/category', form.value)
+      const { sort, ...rest } = form.value
+      await request.post('/category', sort === 0 ? rest : { ...rest, sort })
       ElMessage.success('新增成功')
     }
     drawerVisible.value = false
@@ -178,9 +179,6 @@ async function handleDragEnd() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" v-html="iconMap[key]"></svg>
             </div>
           </div>
-        </el-form-item>
-        <el-form-item label="排序号">
-          <el-input-number v-model="form.sort" :min="0" placeholder="数字越小越靠前" />
         </el-form-item>
         <el-form-item label="状态">
           <div class="switch-field">
