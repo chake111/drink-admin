@@ -17,8 +17,6 @@ const todayData = ref({
   completedChange: 0  // 已完成环比变化
 })
 
-// 待处理订单
-const pendingOrders = ref([])
 
 // 客单价 = 营业额 / 订单数
 const avgOrderDisplay = computed(() => {
@@ -308,52 +306,6 @@ onBeforeUnmount(() => {
           <div v-if="topData.length === 0" class="empty-tip">暂无数据</div>
         </div>
       </div>
-    </div>
-
-    <!-- 待处理订单 — 与原型一致 -->
-    <div class="pending-panel">
-      <div class="panel-head">
-        <h3>待处理订单</h3>
-        <router-link to="/order" class="panel-link">前往订单管理 →</router-link>
-      </div>
-      <el-table :data="pendingOrders" v-if="pendingOrders.length > 0" class="pending-table">
-        <el-table-column label="取餐号" width="90">
-          <template #default="{ row }">
-            <b class="pickup-no">{{ row.pickupNo }}</b>
-          </template>
-        </el-table-column>
-        <el-table-column label="订单号" width="160">
-          <template #default="{ row }">
-            <span class="order-id">{{ row.orderNo }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="顾客" min-width="140">
-          <template #default="{ row }">
-            <div class="cust-cell">
-              <span class="cust-av">{{ (row.userName || '?').charAt(0) }}</span>
-              <div class="cust-name">{{ row.userName || '-' }}</div>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="金额" width="100">
-          <template #default="{ row }">
-            <span class="price">¥{{ row.amount?.toFixed(2) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="110">
-          <template #default="{ row }">
-            <span class="obadge" :class="statusMap[row.status]?.cls">
-              <i></i>{{ statusMap[row.status]?.label }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="80" align="right">
-          <template #default="{ row }">
-            <router-link :to="{ path: '/order', query: { highlight: row.id } }" class="op-link">查看</router-link>
-          </template>
-        </el-table-column>
-      </el-table>
-      <div v-else class="pending-empty">暂无待处理订单</div>
     </div>
   </div>
 </template>
