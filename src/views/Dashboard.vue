@@ -150,11 +150,23 @@ onMounted(async () => {
       request.get('/dashboard/trend'),
       request.get('/dashboard/top')
     ])
-    todayData.value = todayRes.data || todayData.value
+    if (todayRes.data) {
+      const d = todayRes.data
+      todayData.value = {
+        todayOrders: d.todayOrders ?? 0,
+        todayAmount: d.todayAmount ?? 0,
+        pendingOrders: d.pendingOrders ?? 0,
+        completedOrders: d.completedOrders ?? 0,
+        ordersChange: d.ordersChange ?? 0,
+        amountChange: d.amountChange ?? 0,
+        pendingChange: d.pendingChange ?? 0,
+        completedChange: d.completedChange ?? 0
+      }
+    }
     trendData.value = trendRes.data || []
     topData.value = topRes.data || []
   } catch (e) {
-    // 接口未实现时使用占位数据
+    console.error('获取工作台数据失败:', e)
   }
 
   await nextTick()
