@@ -137,8 +137,16 @@ async function handleDetail(row) {
           <template #default="{ row }"><b class="en" style="font-size:15px;color:var(--primary)">{{ row.pickupNo }}</b></template>
         </el-table-column>
         <el-table-column label="订单号" prop="orderNo" width="150" />
-        <el-table-column label="顾客" width="120">
-          <template #default="{ row }"><span class="phone-cell">{{ row.userPhone || '-' }}</span></template>
+        <el-table-column label="顾客" width="180">
+          <template #default="{ row }">
+            <div class="ocust">
+              <span class="oav">{{ (row.userName || '?').charAt(0) }}</span>
+              <div>
+                <div class="on-name">{{ row.userName || '未知用户' }}</div>
+                <div class="on-phone">{{ row.userPhone || '-' }}</div>
+              </div>
+            </div>
+          </template>
         </el-table-column>
         <el-table-column label="商品" min-width="200">
           <template #default="{ row }">
@@ -345,6 +353,10 @@ async function handleDetail(row) {
 .customer-card-label { font-size: 13px; color: var(--ink-3); }
 .customer-card-value { font-size: 13px; color: var(--ink); font-weight: 500; }
 .phone-cell { font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); }
+.ocust { display: flex; align-items: center; gap: 9px; }
+.ocust .oav { width: 32px; height: 32px; border-radius: 50%; background: var(--primary-weak); color: var(--primary); display: grid; place-items: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.ocust .on-name { font-size: 13.5px; font-weight: 500; }
+.ocust .on-phone { font-size: 12px; color: var(--ink-3); font-family: var(--font-mono); }
 .remark-cell { font-size: 13px; color: var(--ink-3); }
 .order-item { font-size: 13px; line-height: 1.8; }
 .spec { color: var(--ink-3); font-size: 12px; }
